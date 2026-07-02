@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -29,7 +30,7 @@ class ZhitianApp extends StatelessWidget {
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1A73E8)),
           scaffoldBackgroundColor: Colors.white,
-          textTheme: ThemeData.light().textTheme.apply(
+          textTheme: GoogleFonts.notoSansScTextTheme().apply(
             bodyColor: const Color(0xFF1A1A1A),
             displayColor: const Color(0xFF1A1A1A),
           ),
