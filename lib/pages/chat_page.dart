@@ -145,10 +145,8 @@ class _EmptyState extends StatelessWidget {
     return Center(
       child: Text(
         '开始对话',
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w400,
-          color: Color(0xFF666666),
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
       ),
     );
