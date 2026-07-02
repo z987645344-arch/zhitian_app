@@ -8,6 +8,9 @@
 - ThinkingBubble改为assistant同款浅灰气泡，跳动点使用主蓝色。
 - ChatPage、LoginPage、SettingsPage、HistoryPage完成简约化样式调整。
 - 验证flutter analyze通过。
+- 新增google_fonts依赖，全局启用Noto Sans SC中文字体，改善Windows中文渲染一致性。
+- 修复空状态“开始对话”文字样式，固定为16px、FontWeight.w400、#666666。
+- 验证flutter pub get和flutter analyze通过。
 
 ## 2026-07-01
 - 拆分ChatPage内部组件，新增lib/widgets/chat_composer.dart、message_bubble.dart、streaming_cursor.dart、thinking_bubble.dart。
