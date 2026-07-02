@@ -11,17 +11,16 @@ class MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUser = message.isUser;
-    final colors = Theme.of(context).colorScheme;
     final bubbleColor = isUser
-        ? colors.primary
-        : colors.surfaceContainerHighest;
-    final textColor = isUser ? colors.onPrimary : colors.onSurface;
+        ? const Color(0xFF1A73E8)
+        : const Color(0xFFF5F5F5);
+    final textColor = isUser ? Colors.white : const Color(0xFF1A1A1A);
 
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxWidth: MediaQuery.sizeOf(context).width * 0.78,
+          maxWidth: MediaQuery.sizeOf(context).width * 0.75,
         ),
         child: Container(
           margin: const EdgeInsets.symmetric(vertical: 6),
@@ -29,10 +28,10 @@ class MessageBubble extends StatelessWidget {
           decoration: BoxDecoration(
             color: bubbleColor,
             borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(8),
-              topRight: const Radius.circular(8),
-              bottomLeft: Radius.circular(isUser ? 8 : 2),
-              bottomRight: Radius.circular(isUser ? 2 : 8),
+              topLeft: const Radius.circular(16),
+              topRight: const Radius.circular(16),
+              bottomLeft: Radius.circular(isUser ? 16 : 4),
+              bottomRight: Radius.circular(isUser ? 4 : 16),
             ),
           ),
           child: _BubbleText(
@@ -61,7 +60,7 @@ class _BubbleText extends StatelessWidget {
   Widget build(BuildContext context) {
     final style = Theme.of(
       context,
-    ).textTheme.bodyLarge?.copyWith(color: color, height: 1.35);
+    ).textTheme.bodyMedium?.copyWith(color: color, fontSize: 15, height: 1.35);
 
     return Wrap(
       crossAxisAlignment: WrapCrossAlignment.center,

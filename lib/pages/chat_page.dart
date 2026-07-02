@@ -57,7 +57,17 @@ class _ChatPageState extends State<ChatPage> {
         final itemCount = visibleMessages.length + (showThinking ? 1 : 0);
 
         return Scaffold(
+          backgroundColor: Colors.white,
           appBar: AppBar(
+            backgroundColor: Colors.white,
+            foregroundColor: const Color(0xFF1A1A1A),
+            surfaceTintColor: Colors.white,
+            titleTextStyle: const TextStyle(
+              color: Color(0xFF1A1A1A),
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+            ),
+            shape: const Border(bottom: BorderSide(color: Color(0xFFE0E0E0))),
             leading: IconButton(
               tooltip: '新建对话',
               icon: const Icon(Icons.add_comment),
@@ -97,7 +107,7 @@ class _ChatPageState extends State<ChatPage> {
                     ? const _EmptyState()
                     : ListView.builder(
                         controller: _scrollController,
-                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                         itemCount: itemCount,
                         itemBuilder: (context, index) {
                           if (showThinking && index == visibleMessages.length) {

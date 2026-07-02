@@ -14,45 +14,67 @@ class ChatComposer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     return SafeArea(
       top: false,
       child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: colors.surface,
-          border: Border(top: BorderSide(color: colors.outlineVariant)),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: Color(0xFFE0E0E0))),
         ),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
           child: Row(
             children: [
               Expanded(
-                child: TextField(
-                  controller: controller,
-                  enabled: !isSending,
-                  minLines: 1,
-                  maxLines: 4,
-                  textInputAction: TextInputAction.send,
-                  decoration: const InputDecoration(
-                    hintText: '输入消息',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(8)),
-                    ),
-                    isDense: true,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  onSubmitted: (_) => onSend(),
+                  child: TextField(
+                    controller: controller,
+                    enabled: !isSending,
+                    minLines: 1,
+                    maxLines: 4,
+                    style: const TextStyle(fontSize: 15),
+                    textInputAction: TextInputAction.send,
+                    decoration: const InputDecoration(
+                      hintText: '输入消息',
+                      hintStyle: TextStyle(color: Color(0xFF666666)),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      isDense: true,
+                    ),
+                    onSubmitted: (_) => onSend(),
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
-              IconButton.filled(
-                tooltip: '发送',
-                onPressed: isSending ? null : onSend,
-                icon: isSending
-                    ? const SizedBox.square(
-                        dimension: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.send_rounded),
+              Opacity(
+                opacity: isSending ? 0.4 : 1,
+                child: SizedBox.square(
+                  dimension: 44,
+                  child: IconButton.filled(
+                    tooltip: '发送',
+                    style: IconButton.styleFrom(
+                      backgroundColor: const Color(0xFF1A73E8),
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: isSending ? null : onSend,
+                    icon: isSending
+                        ? const SizedBox.square(
+                            dimension: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(Icons.send_rounded),
+                  ),
+                ),
               ),
             ],
           ),

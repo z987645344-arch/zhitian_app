@@ -1,5 +1,14 @@
 # zhitian_app CHANGELOG
 
+## 2026-07-02
+- 完成客户端简约风格美化，不新增依赖，仅调整现有页面和组件样式。
+- 统一主色为#1A73E8，页面背景白色或浅灰，气泡圆角、输入框、按钮和字体尺寸按规范收敛。
+- MessageBubble改为用户蓝色气泡、assistant浅灰气泡，移除多余视觉信息。
+- ChatComposer改为白色底栏、顶部1px分隔线、浅灰输入框和圆形蓝色发送按钮。
+- ThinkingBubble改为assistant同款浅灰气泡，跳动点使用主蓝色。
+- ChatPage、LoginPage、SettingsPage、HistoryPage完成简约化样式调整。
+- 验证flutter analyze通过。
+
 ## 2026-07-01
 - 拆分ChatPage内部组件，新增lib/widgets/chat_composer.dart、message_bubble.dart、streaming_cursor.dart、thinking_bubble.dart。
 - chat_page.dart保留页面编排逻辑，降低单文件复杂度。

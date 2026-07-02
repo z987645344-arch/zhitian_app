@@ -82,95 +82,138 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('设置')),
+      backgroundColor: const Color(0xFFF5F5F5),
+      appBar: AppBar(
+        title: const Text('设置'),
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF1A1A1A),
+        surfaceTintColor: Colors.white,
+        titleTextStyle: const TextStyle(
+          color: Color(0xFF1A1A1A),
+          fontSize: 17,
+          fontWeight: FontWeight.w600,
+        ),
+        shape: const Border(bottom: BorderSide(color: Color(0xFFE0E0E0))),
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                Text('后端连接', style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _backendController,
-                  keyboardType: TextInputType.url,
-                  decoration: const InputDecoration(
-                    labelText: '后端地址',
-                    hintText: ApiService.defaultBackendUrl,
-                    prefixIcon: Icon(Icons.dns_outlined),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(8)),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
+                _SettingsCard(
+                  title: '后端连接',
                   children: [
-                    FilledButton.icon(
-                      onPressed: _isSaving ? null : _saveBackendUrl,
-                      icon: _isSaving
-                          ? const SizedBox.square(
-                              dimension: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.save_outlined),
-                      label: const Text('保存'),
+                    TextField(
+                      controller: _backendController,
+                      keyboardType: TextInputType.url,
+                      style: const TextStyle(fontSize: 15),
+                      decoration: _inputDecoration(
+                        label: '后端地址',
+                        hint: ApiService.defaultBackendUrl,
+                        icon: Icons.dns_outlined,
+                      ),
                     ),
-                    const SizedBox(width: 10),
-                    OutlinedButton.icon(
-                      onPressed: _isTesting ? null : _testConnection,
-                      icon: _isTesting
-                          ? const SizedBox.square(
-                              dimension: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.network_check_outlined),
-                      label: const Text('测试连接'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                if (_healthStatus != null)
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: _statusColor(colors).withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: _statusColor(colors)),
-                    ),
-                    child: Row(
+                    const SizedBox(height: 12),
+                    Row(
                       children: [
-                        Icon(_statusIcon(), color: _statusColor(colors)),
-                        const SizedBox(width: 10),
-                        Text(
-                          '连接状态：$_healthStatus',
-                          style: TextStyle(
-                            color: _statusColor(colors),
-                            fontWeight: FontWeight.w600,
+                        FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF1A73E8),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
+                          onPressed: _isSaving ? null : _saveBackendUrl,
+                          icon: _isSaving
+                              ? const SizedBox.square(
+                                  dimension: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Icon(Icons.save_outlined),
+                          label: const Text('保存'),
+                        ),
+                        const SizedBox(width: 10),
+                        OutlinedButton.icon(
+                          onPressed: _isTesting ? null : _testConnection,
+                          icon: _isTesting
+                              ? const SizedBox.square(
+                                  dimension: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.network_check_outlined),
+                          label: const Text('测试连接'),
                         ),
                       ],
                     ),
-                  ),
-                const SizedBox(height: 28),
-                Text('账号', style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: _logout,
-                  icon: const Icon(Icons.logout),
-                  label: const Text('退出登录'),
+                    if (_healthStatus != null) ...[
+                      const SizedBox(height: 12),
+                      _StatusBox(
+                        status: _healthStatus!,
+                        color: _statusColor(),
+                        icon: _statusIcon(),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _SettingsCard(
+                  title: '账号',
+                  children: [
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        foregroundColor: const Color(0xFFD32F2F),
+                        alignment: Alignment.centerLeft,
+                      ),
+                      onPressed: _logout,
+                      icon: const Icon(Icons.logout),
+                      label: const Text('退出登录'),
+                    ),
+                  ],
                 ),
               ],
             ),
     );
   }
 
-  Color _statusColor(ColorScheme colors) {
+  InputDecoration _inputDecoration({
+    required String label,
+    required String hint,
+    required IconData icon,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      hintText: hint,
+      labelStyle: const TextStyle(color: Color(0xFF666666)),
+      prefixIcon: Icon(icon, color: const Color(0xFF666666)),
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFF1A73E8)),
+      ),
+    );
+  }
+
+  Color _statusColor() {
     return switch (_healthStatus) {
-      'ok' => colors.primary,
-      'degraded' => colors.tertiary,
-      _ => colors.error,
+      'ok' => const Color(0xFF1A73E8),
+      'degraded' => const Color(0xFFF57C00),
+      _ => const Color(0xFFD32F2F),
     };
   }
 
@@ -180,5 +223,77 @@ class _SettingsPageState extends State<SettingsPage> {
       'degraded' => Icons.warning_amber_outlined,
       _ => Icons.error_outline,
     };
+  }
+}
+
+class _SettingsCard extends StatelessWidget {
+  const _SettingsCard({required this.title, required this.children});
+
+  final String title;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                color: Color(0xFF1A1A1A),
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Divider(height: 1, color: Color(0xFFE0E0E0)),
+            ),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusBox extends StatelessWidget {
+  const _StatusBox({
+    required this.status,
+    required this.color,
+    required this.icon,
+  });
+
+  final String status;
+  final Color color;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color),
+          const SizedBox(width: 10),
+          Text(
+            '连接状态：$status',
+            style: TextStyle(color: color, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
   }
 }

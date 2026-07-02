@@ -5,23 +5,22 @@ class ThinkingBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     return Align(
       alignment: Alignment.centerLeft,
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxWidth: MediaQuery.sizeOf(context).width * 0.78,
+          maxWidth: MediaQuery.sizeOf(context).width * 0.75,
         ),
         child: Container(
           margin: const EdgeInsets.symmetric(vertical: 6),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: colors.surfaceContainerHighest,
+            color: const Color(0xFFF5F5F5),
             borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(8),
-              topRight: Radius.circular(8),
-              bottomLeft: Radius.circular(2),
-              bottomRight: Radius.circular(8),
+              topLeft: Radius.circular(16),
+              topRight: Radius.circular(16),
+              bottomLeft: Radius.circular(4),
+              bottomRight: Radius.circular(16),
             ),
           ),
           child: Row(
@@ -30,12 +29,13 @@ class ThinkingBubble extends StatelessWidget {
               Text(
                 '思考中',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: colors.onSurface,
+                  color: const Color(0xFF1A1A1A),
+                  fontSize: 15,
                   height: 1.35,
                 ),
               ),
               const SizedBox(width: 6),
-              _JumpingDots(color: colors.onSurface),
+              const _JumpingDots(color: Color(0xFF1A73E8)),
             ],
           ),
         ),

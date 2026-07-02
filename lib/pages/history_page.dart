@@ -72,8 +72,18 @@ class _HistoryPageState extends State<HistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         title: const Text('历史记录'),
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF1A1A1A),
+        surfaceTintColor: Colors.white,
+        titleTextStyle: const TextStyle(
+          color: Color(0xFF1A1A1A),
+          fontSize: 17,
+          fontWeight: FontWeight.w600,
+        ),
+        shape: const Border(bottom: BorderSide(color: Color(0xFFE0E0E0))),
         actions: [
           IconButton(
             tooltip: '清空历史',
@@ -108,7 +118,7 @@ class _HistoryPageState extends State<HistoryPage> {
 
     return ListView.separated(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       itemCount: _history.length,
       separatorBuilder: (_, _) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
@@ -137,9 +147,8 @@ class _HistoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUser = role == 'user';
-    final colors = Theme.of(context).colorScheme;
     return Material(
-      color: colors.surfaceContainerHighest,
+      color: Colors.white,
       borderRadius: BorderRadius.circular(8),
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -148,8 +157,12 @@ class _HistoryTile extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 17,
-              backgroundColor: isUser ? colors.primary : colors.secondary,
-              foregroundColor: isUser ? colors.onPrimary : colors.onSecondary,
+              backgroundColor: isUser
+                  ? const Color(0xFFE8F0FE)
+                  : const Color(0xFFF5F5F5),
+              foregroundColor: isUser
+                  ? const Color(0xFF1A73E8)
+                  : const Color(0xFF666666),
               child: Icon(
                 isUser ? Icons.person_outline : Icons.smart_toy_outlined,
                 size: 18,
@@ -164,7 +177,11 @@ class _HistoryTile extends StatelessWidget {
                     children: [
                       Text(
                         isUser ? '用户' : '知天',
-                        style: Theme.of(context).textTheme.labelLarge,
+                        style: const TextStyle(
+                          color: Color(0xFF1A1A1A),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -172,8 +189,10 @@ class _HistoryTile extends StatelessWidget {
                           timestamp,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.labelSmall
-                              ?.copyWith(color: colors.onSurfaceVariant),
+                          style: const TextStyle(
+                            color: Color(0xFF666666),
+                            fontSize: 13,
+                          ),
                         ),
                       ),
                     ],
@@ -181,9 +200,11 @@ class _HistoryTile extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     content,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(height: 1.35),
+                    style: const TextStyle(
+                      color: Color(0xFF1A1A1A),
+                      fontSize: 15,
+                      height: 1.35,
+                    ),
                   ),
                 ],
               ),

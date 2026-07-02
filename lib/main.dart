@@ -27,7 +27,12 @@ class ZhitianApp extends StatelessWidget {
         title: '知天',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2563EB)),
+          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1A73E8)),
+          scaffoldBackgroundColor: Colors.white,
+          textTheme: ThemeData.light().textTheme.apply(
+            bodyColor: const Color(0xFF1A1A1A),
+            displayColor: const Color(0xFF1A1A1A),
+          ),
           useMaterial3: true,
         ),
         home: isLoggedIn ? const ChatPage() : const LoginPage(),
