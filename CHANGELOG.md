@@ -51,3 +51,6 @@
 - ChatPage右上角新增Icons.history历史记录入口。
 - 历史页清空成功后同步调用provider.newChat()，返回聊天页即为新会话。
 - 验证flutter analyze和flutter test通过；真实后端/memory接口读取和清空验证通过。
+
+## 2026-07-05
+- 新增 `启动前端.bat`，支持在前端根目录双击启动 Flutter Windows 客户端；原统一启动脚本已拆分为前后端独立入口。
