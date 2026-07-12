@@ -14,11 +14,21 @@ class ChatProvider extends ChangeNotifier {
 
   bool _isSending = false;
   bool _isThinking = false;
+  String _mode = 'fast';
 
   List<Message> get messages => List.unmodifiable(_messages);
   String get sessionId => _sessionId;
   bool get isSending => _isSending;
   bool get isThinking => _isThinking;
+  String get mode => _mode;
+
+  void setMode(String mode) {
+    if (_isSending || mode == _mode || (mode != 'fast' && mode != 'expert')) {
+      return;
+    }
+    _mode = mode;
+    notifyListeners();
+  }
 
   void newChat() {
     _messages.clear();
@@ -51,6 +61,14 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setAssistantCitations(List<Citation> citations) {
+    if (_messages.isEmpty) return;
+    final last = _messages.last;
+    if (last.role != MessageRole.assistant) return;
+    last.citations = citations;
+    notifyListeners();
+  }
+
   void finishStreaming() {
     if (_messages.isNotEmpty) {
       final last = _messages.last;
@@ -73,15 +91,23 @@ class ChatProvider extends ChangeNotifier {
     addAssistantPlaceholder();
 
     try {
-      await for (final chunk in _apiService.chatStream(
+      await for (final event in _apiService.chatStream(
         sessionId: sessionId,
         message: text,
+        mode: _mode,
       )) {
-        if (chunk == '[DONE]') {
+        if (event.isDone) {
           finishStreaming();
           return;
         }
-        appendChunk(chunk);
+        if (event.hasCitations) {
+          setAssistantCitations(event.citations ?? const []);
+          continue;
+        }
+        final chunk = event.chunk;
+        if (chunk != null) {
+          appendChunk(chunk);
+        }
       }
     } catch (e) {
       appendChunk('⚠️ 发生错误：${_briefError(e)}');

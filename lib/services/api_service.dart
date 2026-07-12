@@ -5,10 +5,13 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/message.dart';
+
 abstract class ChatStreamingService {
-  Stream<String> chatStream({
+  Stream<ChatStreamEvent> chatStream({
     required String sessionId,
     required String message,
+    required String mode,
   });
 }
 
@@ -18,6 +21,11 @@ abstract class MemoryService {
 }
 
 class ApiService implements ChatStreamingService, MemoryService {
+  ApiService({http.Client Function()? clientFactory})
+    : _clientFactory = clientFactory ?? http.Client.new;
+
+  final http.Client Function() _clientFactory;
+
   static const String backendUrlKey = 'backend_url';
   static const String authTokenKey = 'auth_token';
   static const String userRoleKey = 'user_role';
@@ -148,11 +156,12 @@ class ApiService implements ChatStreamingService, MemoryService {
   }
 
   @override
-  Stream<String> chatStream({
+  Stream<ChatStreamEvent> chatStream({
     required String sessionId,
     required String message,
+    required String mode,
   }) async* {
-    final client = http.Client();
+    final client = _clientFactory();
     try {
       final backendUrl = await getBackendUrl();
       final request = http.Request('POST', Uri.parse('$backendUrl/chat/stream'))
@@ -160,14 +169,19 @@ class ApiService implements ChatStreamingService, MemoryService {
         ..body = jsonEncode({
           'session_id': sessionId,
           'message': message,
-          'mode': 'chat',
+          'mode': mode,
         });
 
       final response = await client
           .send(request)
           .timeout(const Duration(seconds: 30));
+      if (response.statusCode == 401) {
+        await logout();
+        yield ChatStreamEvent.chunk('⚠️ 登录已过期，请重新登录');
+        return;
+      }
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        yield '⚠️ 发生错误：HTTP ${response.statusCode}';
+        yield ChatStreamEvent.chunk('⚠️ 发生错误：HTTP ${response.statusCode}');
         return;
       }
 
@@ -188,24 +202,32 @@ class ApiService implements ChatStreamingService, MemoryService {
 
           final error = event['error'];
           if (error is String && error.isNotEmpty) {
-            yield error;
+            yield ChatStreamEvent.chunk(error);
             return;
+          }
+
+          if (event['type'] == 'citations') {
+            yield ChatStreamEvent.citations(parseCitations(event['citations']));
+            continue;
           }
 
           final chunk = event['chunk'];
           if (chunk is! String) continue;
-          if (chunk == '[DONE]') return;
-          yield chunk;
+          if (chunk == '[DONE]') {
+            yield ChatStreamEvent.done();
+            return;
+          }
+          yield ChatStreamEvent.chunk(chunk);
         } catch (_) {
           continue;
         }
       }
     } on SocketException {
-      yield connectionErrorMessage;
+      yield ChatStreamEvent.chunk(connectionErrorMessage);
     } on TimeoutException {
-      yield timeoutErrorMessage;
+      yield ChatStreamEvent.chunk(timeoutErrorMessage);
     } catch (e) {
-      yield '⚠️ 发生错误：${_briefError(e)}';
+      yield ChatStreamEvent.chunk('⚠️ 发生错误：${_briefError(e)}');
     } finally {
       client.close();
     }
@@ -242,7 +264,7 @@ class ApiService implements ChatStreamingService, MemoryService {
   }
 
   String _briefError(Object error) {
-    final text = error.toString().replaceAll('\n', ' ');
+    final text = error.toString().replaceAll('\\n', ' ');
     if (text.length <= 80) return text;
     return '${text.substring(0, 80)}...';
   }

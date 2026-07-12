@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:zhitian_app/models/message.dart';
 import 'package:zhitian_app/pages/chat_page.dart';
 import 'package:zhitian_app/pages/history_page.dart';
 import 'package:zhitian_app/providers/chat_provider.dart';
@@ -60,6 +61,31 @@ void main() {
     expect(find.text('开始对话'), findsOneWidget);
   });
 
+  testWidgets('chat mode defaults to fast and switches to expert', (
+    WidgetTester tester,
+  ) async {
+    final service = _ModeStreamingService();
+    final provider = ChatProvider(apiService: service);
+    await tester.pumpWidget(_buildApp(provider));
+
+    expect(provider.mode, 'fast');
+    await tester.enterText(find.byType(TextField), '快速消息');
+    await tester.tap(find.byIcon(Icons.send_rounded));
+    await tester.pumpAndSettle();
+    expect(service.modes, ['fast']);
+
+    await tester.tap(find.text('专家'));
+    await tester.pump();
+    expect(provider.mode, 'expert');
+
+    provider.newChat();
+    expect(provider.mode, 'expert');
+    await tester.enterText(find.byType(TextField), '专家消息');
+    await tester.tap(find.byIcon(Icons.send_rounded));
+    await tester.pumpAndSettle();
+    expect(service.modes, ['fast', 'expert']);
+  });
+
   testWidgets('connection error is displayed and sending state resets', (
     WidgetTester tester,
   ) async {
@@ -81,6 +107,29 @@ void main() {
     expect(provider.isSending, isFalse);
   });
 
+  testWidgets('assistant message shows citations after stream completes', (
+    WidgetTester tester,
+  ) async {
+    final provider = ChatProvider(apiService: _CitationStreamingService());
+    await tester.pumpWidget(_buildApp(provider));
+
+    await tester.enterText(find.byType(TextField), '查文档');
+    await tester.tap(find.byIcon(Icons.send_rounded));
+    await tester.pump();
+
+    expect(find.text('引用来源 1'), findsNothing);
+
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.textContaining('文档答案'), findsOneWidget);
+    expect(find.text('引用来源 1'), findsOneWidget);
+    expect(find.text('测试文档.md · 片段 1'), findsNothing);
+
+    await tester.tap(find.text('引用来源 1'));
+    await tester.pump();
+
+    expect(find.text('测试文档.md · 片段 1'), findsOneWidget);
+  });
   testWidgets('history page loads records and clears current session', (
     WidgetTester tester,
   ) async {
@@ -124,13 +173,14 @@ Widget _buildApp(ChatProvider provider) {
 
 class _FakeStreamingService implements ChatStreamingService {
   @override
-  Stream<String> chatStream({
+  Stream<ChatStreamEvent> chatStream({
     required String sessionId,
     required String message,
+    required String mode,
   }) async* {
     await Future<void>.delayed(const Duration(milliseconds: 300));
     for (final char in '真实回复正在逐字显示'.runes) {
-      yield String.fromCharCode(char);
+      yield ChatStreamEvent.chunk(String.fromCharCode(char));
       await Future<void>.delayed(const Duration(milliseconds: 30));
     }
   }
@@ -138,12 +188,51 @@ class _FakeStreamingService implements ChatStreamingService {
 
 class _ErrorStreamingService implements ChatStreamingService {
   @override
-  Stream<String> chatStream({
+  Stream<ChatStreamEvent> chatStream({
     required String sessionId,
     required String message,
+    required String mode,
   }) async* {
     await Future<void>.delayed(const Duration(milliseconds: 100));
-    yield ApiService.connectionErrorMessage;
+    yield ChatStreamEvent.chunk(ApiService.connectionErrorMessage);
+  }
+}
+
+class _CitationStreamingService implements ChatStreamingService {
+  @override
+  Stream<ChatStreamEvent> chatStream({
+    required String sessionId,
+    required String message,
+    required String mode,
+  }) async* {
+    for (final char in '文档答案'.runes) {
+      yield ChatStreamEvent.chunk(String.fromCharCode(char));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    }
+    yield ChatStreamEvent.citations([
+      const Citation(
+        source: '测试文档.md',
+        docId: 'doc-1',
+        chunkIndex: 0,
+        score: 0.72,
+      ),
+    ]);
+    yield ChatStreamEvent.done();
+  }
+}
+
+class _ModeStreamingService implements ChatStreamingService {
+  final List<String> modes = [];
+
+  @override
+  Stream<ChatStreamEvent> chatStream({
+    required String sessionId,
+    required String message,
+    required String mode,
+  }) async* {
+    modes.add(mode);
+    yield ChatStreamEvent.chunk('ok');
+    yield ChatStreamEvent.done();
   }
 }
 

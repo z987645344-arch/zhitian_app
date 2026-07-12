@@ -76,6 +76,27 @@ class _ChatPageState extends State<ChatPage> {
             title: const Text('知天'),
             centerTitle: false,
             actions: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: SegmentedButton<String>(
+                  segments: const [
+                    ButtonSegment<String>(value: 'fast', label: Text('快速')),
+                    ButtonSegment<String>(value: 'expert', label: Text('专家')),
+                  ],
+                  selected: {provider.mode},
+                  onSelectionChanged: provider.isSending
+                      ? null
+                      : (selection) => provider.setMode(selection.first),
+                  showSelectedIcon: false,
+                  style: ButtonStyle(
+                    visualDensity: VisualDensity.compact,
+                    textStyle: WidgetStateProperty.all(
+                      const TextStyle(fontSize: 13),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
               IconButton(
                 tooltip: '历史记录',
                 icon: const Icon(Icons.history),

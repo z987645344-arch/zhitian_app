@@ -1,5 +1,12 @@
 # zhitian_app CHANGELOG
 
+## 2026-07-12
+- 聊天页AppBar新增“快速/专家”分段切换控件，默认快速；模式由ChatProvider在应用运行期间保持，新建会话不重置，应用重启后恢复快速。
+- ChatStreamingService和ApiService.chatStream新增mode参数，请求体按选择发送`fast`或`expert`，移除原有硬编码`mode: chat`；登录、历史记录和citations流程保持不变。
+- ApiService支持注入HTTP client factory用于请求序列化测试，生产环境仍默认创建标准http.Client。
+- 验证通过：dart format完成，flutter analyze无问题，flutter test共8项全部通过；测试覆盖UI默认fast、切换expert、会话内保持，以及真实JSON请求体的fast/expert字段。
+- 本地真实后端SSE验证：fast与expert均返回HTTP 200及`[DONE]`，耗时分别约11.98秒和7.34秒；临时测试用户和会话已清理。
+
 ## 2026-07-02
 - 完成客户端简约风格美化，不新增依赖，仅调整现有页面和组件样式。
 - 统一主色为#1A73E8，页面背景白色或浅灰，气泡圆角、输入框、按钮和字体尺寸按规范收敛。
@@ -54,3 +61,8 @@
 
 ## 2026-07-05
 - 新增 `启动前端.bat`，支持在前端根目录双击启动 Flutter Windows 客户端；原统一启动脚本已拆分为前后端独立入口。
+
+- 接入后端RAG citations结构化引用来源展示。
+- Message模型新增Citation字段，ApiService支持解析/chat/stream中的citations SSE事件，ChatProvider将引用绑定到当前assistant消息。
+- MessageBubble新增可展开“引用来源”区域，仅assistant消息存在citations时显示，展开后展示文件名和片段编号，不展示内部score。
+- 验证flutter analyze和flutter test通过；测试覆盖流式结束后出现引用来源且展开可见。
