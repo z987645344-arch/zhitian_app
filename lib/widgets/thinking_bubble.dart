@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 class ThinkingBubble extends StatelessWidget {
   const ThinkingBubble({super.key});
@@ -8,20 +9,19 @@ class ThinkingBubble extends StatelessWidget {
     return Align(
       alignment: Alignment.centerLeft,
       child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.sizeOf(context).width * 0.75,
-        ),
+        constraints: BoxConstraints(maxWidth: 720),
         child: Container(
           margin: const EdgeInsets.symmetric(vertical: 6),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFFF5F5F5),
+            color: AppColors.surface,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(16),
               topRight: Radius.circular(16),
-              bottomLeft: Radius.circular(4),
+              bottomLeft: Radius.circular(6),
               bottomRight: Radius.circular(16),
             ),
+            border: Border.all(color: AppColors.border),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -29,13 +29,13 @@ class ThinkingBubble extends StatelessWidget {
               Text(
                 '思考中',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: const Color(0xFF1A1A1A),
+                  color: AppColors.text,
                   fontSize: 15,
                   height: 1.35,
                 ),
               ),
               const SizedBox(width: 6),
-              const _JumpingDots(color: Color(0xFF1A73E8)),
+              const _JumpingDots(color: AppColors.primary),
             ],
           ),
         ),

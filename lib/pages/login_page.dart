@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../services/api_service.dart';
+import '../theme/app_theme.dart';
 import 'chat_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -65,36 +66,52 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
+            constraints: const BoxConstraints(maxWidth: 440),
             child: Container(
-              margin: const EdgeInsets.all(24),
-              padding: const EdgeInsets.all(24),
+              margin: const EdgeInsets.all(32),
+              padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE0E0E0)),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.border),
               ),
               child: ListView(
                 shrinkWrap: true,
                 children: [
+                  Center(
+                    child: Container(
+                      width: 58,
+                      height: 58,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryContainer,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(
+                        Icons.auto_awesome_outlined,
+                        color: AppColors.primary,
+                        size: 30,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
                   const Text(
                     '知天',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Color(0xFF1A73E8),
-                      fontSize: 30,
+                      color: AppColors.text,
+                      fontSize: 28,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    '企业知识助手',
+                    '安静、可靠的企业智能工作台',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Color(0xFF666666), fontSize: 13),
+                    style: TextStyle(color: AppColors.textMuted, fontSize: 13),
                   ),
                   const SizedBox(height: 28),
                   TextField(
@@ -142,7 +159,7 @@ class _LoginPageState extends State<LoginPage> {
                     width: double.infinity,
                     child: FilledButton.icon(
                       style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF1A73E8),
+                        backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -177,22 +194,22 @@ class _LoginPageState extends State<LoginPage> {
   }) {
     return InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(color: Color(0xFF666666)),
-      prefixIcon: Icon(icon, color: const Color(0xFF666666)),
+      labelStyle: const TextStyle(color: AppColors.textMuted),
+      prefixIcon: Icon(icon, color: AppColors.textMuted),
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: const Color(0xFFF5F5F5),
+      fillColor: AppColors.surfaceLow,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide.none,
+        borderSide: const BorderSide(color: AppColors.border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide.none,
+        borderSide: const BorderSide(color: AppColors.border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide.none,
+        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
       ),
     );
   }

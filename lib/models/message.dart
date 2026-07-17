@@ -57,26 +57,70 @@ class Message {
     required this.role,
     required this.content,
     this.isStreaming = false,
+    this.reasoning,
     List<Citation>? citations,
-  }) : citations = citations ?? [];
+    List<String>? attachmentIds,
+    List<String>? attachmentFilenames,
+  }) : citations = citations ?? [],
+       attachmentIds = attachmentIds ?? [],
+       attachmentFilenames = attachmentFilenames ?? [];
 
   final MessageRole role;
   String content;
   bool isStreaming;
+  String? reasoning;
   List<Citation> citations;
+  List<String> attachmentIds;
+  List<String> attachmentFilenames;
 
   bool get isUser => role == MessageRole.user;
+
+  List<String> get attachmentLabels {
+    if (attachmentFilenames.isNotEmpty) return attachmentFilenames;
+    return List<String>.generate(
+      attachmentIds.length,
+      (index) => '附件 ${index + 1}',
+      growable: false,
+    );
+  }
+
+  factory Message.fromHistory(Map<String, dynamic> json) {
+    final role = json['role'] == 'user'
+        ? MessageRole.user
+        : MessageRole.assistant;
+    return Message(
+      role: role,
+      content: (json['content'] ?? '').toString(),
+      attachmentIds: _stringList(json['attachment_ids']),
+      attachmentFilenames: _stringList(json['attachment_filenames']),
+    );
+  }
+
+  static List<String> _stringList(Object? raw) {
+    if (raw is! List) return [];
+    return raw
+        .map((item) => item.toString())
+        .where((item) => item.isNotEmpty)
+        .toList(growable: false);
+  }
 }
 
 class ChatStreamEvent {
-  const ChatStreamEvent._({this.chunk, this.citations, this.isDone = false});
+  const ChatStreamEvent._({
+    this.chunk,
+    this.citations,
+    this.reasoning,
+    this.isDone = false,
+  });
 
   final String? chunk;
   final List<Citation>? citations;
+  final String? reasoning;
   final bool isDone;
 
   bool get hasChunk => chunk != null;
   bool get hasCitations => citations != null;
+  bool get hasReasoning => reasoning != null;
 
   factory ChatStreamEvent.chunk(String value) {
     return ChatStreamEvent._(chunk: value);
@@ -84,6 +128,10 @@ class ChatStreamEvent {
 
   factory ChatStreamEvent.citations(List<Citation> citations) {
     return ChatStreamEvent._(citations: citations);
+  }
+
+  factory ChatStreamEvent.reasoning(String reasoning) {
+    return ChatStreamEvent._(reasoning: reasoning);
   }
 
   factory ChatStreamEvent.done() {

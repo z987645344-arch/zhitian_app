@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/chat_session.dart';
 import '../models/message.dart';
 import '../providers/chat_provider.dart';
+import '../services/api_service.dart';
+import '../theme/app_theme.dart';
 import '../widgets/chat_composer.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/thinking_bubble.dart';
+import 'files_page.dart';
 import 'history_page.dart';
 import 'settings_page.dart';
+import 'toolbox_page.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -21,6 +27,14 @@ class _ChatPageState extends State<ChatPage> {
   final ScrollController _scrollController = ScrollController();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ChatProvider>().refreshSessions();
+    });
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     _scrollController.dispose();
@@ -29,7 +43,7 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> _send(ChatProvider provider) async {
     final text = _controller.text;
-    if (text.trim().isEmpty || provider.isSending) return;
+    if (!provider.canSend(text)) return;
     _controller.clear();
     await provider.sendMessage(text);
   }
@@ -50,111 +64,838 @@ class _ChatPageState extends State<ChatPage> {
     return Consumer<ChatProvider>(
       builder: (context, provider, _) {
         _scrollToBottom();
-        final visibleMessages = provider.messages
-            .where(_shouldShowMessage)
-            .toList();
-        final showThinking = provider.isThinking;
-        final itemCount = visibleMessages.length + (showThinking ? 1 : 0);
+        final messages = provider.messages.where(_shouldShowMessage).toList();
+        final itemCount = messages.length + (provider.isThinking ? 1 : 0);
+        void open(Widget page) => Navigator.of(
+          context,
+        ).push(MaterialPageRoute<void>(builder: (_) => page));
 
         return Scaffold(
-          backgroundColor: Colors.white,
-          appBar: AppBar(
-            backgroundColor: Colors.white,
-            foregroundColor: const Color(0xFF1A1A1A),
-            surfaceTintColor: Colors.white,
-            titleTextStyle: const TextStyle(
-              color: Color(0xFF1A1A1A),
-              fontSize: 17,
-              fontWeight: FontWeight.w600,
-            ),
-            shape: const Border(bottom: BorderSide(color: Color(0xFFE0E0E0))),
-            leading: IconButton(
-              tooltip: '新建对话',
-              icon: const Icon(Icons.add_comment),
-              onPressed: provider.newChat,
-            ),
-            title: const Text('知天'),
-            centerTitle: false,
-            actions: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: SegmentedButton<String>(
-                  segments: const [
-                    ButtonSegment<String>(value: 'fast', label: Text('快速')),
-                    ButtonSegment<String>(value: 'expert', label: Text('专家')),
-                  ],
-                  selected: {provider.mode},
-                  onSelectionChanged: provider.isSending
-                      ? null
-                      : (selection) => provider.setMode(selection.first),
-                  showSelectedIcon: false,
-                  style: ButtonStyle(
-                    visualDensity: VisualDensity.compact,
-                    textStyle: WidgetStateProperty.all(
-                      const TextStyle(fontSize: 13),
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              final compactRail = constraints.maxWidth < 760;
+              final showInspector = constraints.maxWidth >= 1180;
+              return Row(
+                children: [
+                  _LeftPanel(
+                    compact: compactRail,
+                    provider: provider,
+                    openHistory: () => open(const HistoryPage()),
+                    openFiles: () => open(const FilesPage()),
+                    openToolbox: () => open(const ToolboxPage()),
+                    openSettings: () => open(const SettingsPage()),
+                  ),
+                  Expanded(
+                    child: ColoredBox(
+                      color: AppColors.background,
+                      child: Column(
+                        children: [
+                          _WorkspaceHeader(
+                            provider: provider,
+                            showModeSelector: !showInspector,
+                          ),
+                          Expanded(
+                            child: Center(
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 900,
+                                ),
+                                child: itemCount == 0
+                                    ? const _EmptyState()
+                                    : ListView.builder(
+                                        controller: _scrollController,
+                                        padding: const EdgeInsets.fromLTRB(
+                                          32,
+                                          26,
+                                          32,
+                                          18,
+                                        ),
+                                        itemCount: itemCount,
+                                        itemBuilder: (context, index) {
+                                          if (provider.isThinking &&
+                                              index == messages.length) {
+                                            return const ThinkingBubble();
+                                          }
+                                          return MessageBubble(
+                                            message: messages[index],
+                                          );
+                                        },
+                                      ),
+                              ),
+                            ),
+                          ),
+                          Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 900),
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  24,
+                                  0,
+                                  24,
+                                  18,
+                                ),
+                                child: Column(
+                                  children: [
+                                    ChatComposer(
+                                      controller: _controller,
+                                      isSending: provider.isSending,
+                                      pendingAttachments:
+                                          provider.pendingAttachments,
+                                      hasUploadingAttachments:
+                                          provider.hasUploadingAttachments,
+                                      hasSuccessfulAttachments:
+                                          provider.hasSuccessfulAttachments,
+                                      onAddAttachment: provider.addAttachment,
+                                      onRemoveAttachment:
+                                          provider.removeAttachment,
+                                      onSend: () => _send(provider),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    const Text(
+                                      'AI 生成内容仅供参考，请结合实际情况判断',
+                                      style: TextStyle(
+                                        color: AppColors.textMuted,
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(width: 6),
-              IconButton(
-                tooltip: '历史记录',
-                icon: const Icon(Icons.history),
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const HistoryPage(),
+                  if (showInspector)
+                    _RightPanel(
+                      provider: provider,
+                      openHistory: () => open(const HistoryPage()),
+                      openFiles: () => open(const FilesPage()),
+                      openToolbox: () => open(const ToolboxPage()),
+                      openSettings: () => open(const SettingsPage()),
                     ),
-                  );
-                },
-              ),
-              IconButton(
-                tooltip: '设置',
-                icon: const Icon(Icons.settings_outlined),
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const SettingsPage(),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-          body: Column(
-            children: [
-              Expanded(
-                child: itemCount == 0
-                    ? const _EmptyState()
-                    : ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                        itemCount: itemCount,
-                        itemBuilder: (context, index) {
-                          if (showThinking && index == visibleMessages.length) {
-                            return const ThinkingBubble();
-                          }
-                          return MessageBubble(message: visibleMessages[index]);
-                        },
-                      ),
-              ),
-              ChatComposer(
-                controller: _controller,
-                isSending: provider.isSending,
-                onSend: () => _send(provider),
-              ),
-            ],
+                ],
+              );
+            },
           ),
         );
       },
     );
   }
 
-  bool _shouldShowMessage(Message message) {
-    if (message.role == MessageRole.assistant && message.content.isEmpty) {
-      return false;
+  bool _shouldShowMessage(Message message) =>
+      message.content.isNotEmpty || message.attachmentIds.isNotEmpty;
+}
+
+class _LeftPanel extends StatelessWidget {
+  const _LeftPanel({
+    required this.compact,
+    required this.provider,
+    required this.openHistory,
+    required this.openFiles,
+    required this.openToolbox,
+    required this.openSettings,
+  });
+
+  final bool compact;
+  final ChatProvider provider;
+  final VoidCallback openHistory;
+  final VoidCallback openFiles;
+  final VoidCallback openToolbox;
+  final VoidCallback openSettings;
+
+  @override
+  Widget build(BuildContext context) {
+    final sessionCount = provider.sessions.length > 8
+        ? 8
+        : provider.sessions.length;
+    return Container(
+      width: compact ? 72 : 260,
+      decoration: const BoxDecoration(
+        color: AppColors.surfaceLow,
+        border: Border(right: BorderSide(color: AppColors.border)),
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            compact ? 10 : 16,
+            18,
+            compact ? 10 : 16,
+            14,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _Brand(compact: compact, onNewChat: provider.newChat),
+              const SizedBox(height: 22),
+              if (compact)
+                IconButton.filled(
+                  tooltip: '新建对话',
+                  onPressed: provider.newChat,
+                  icon: const Icon(Icons.add_comment),
+                )
+              else
+                FilledButton.icon(
+                  onPressed: provider.newChat,
+                  icon: const Icon(Icons.add, size: 19),
+                  label: const Text('新建对话'),
+                ),
+              const SizedBox(height: 18),
+              _NavItem(
+                compact: compact,
+                selected: true,
+                icon: Icons.chat_bubble_outline,
+                label: '对话',
+                onTap: () {},
+              ),
+              _NavItem(
+                compact: compact,
+                icon: Icons.history,
+                label: '历史记录',
+                onTap: openHistory,
+              ),
+              _NavItem(
+                compact: compact,
+                icon: Icons.folder_outlined,
+                label: '我的文件',
+                onTap: openFiles,
+              ),
+              _NavItem(
+                compact: compact,
+                icon: Icons.build_outlined,
+                label: '工具箱',
+                onTap: openToolbox,
+              ),
+              _NavItem(
+                compact: compact,
+                icon: Icons.settings_outlined,
+                label: '设置',
+                onTap: openSettings,
+              ),
+              if (!compact) ...[
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(10, 28, 10, 10),
+                  child: Text(
+                    '最近会话',
+                    style: TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: sessionCount == 0
+                      ? const Padding(
+                          padding: EdgeInsets.all(10),
+                          child: Text(
+                            '暂无会话',
+                            style: TextStyle(
+                              color: AppColors.textMuted,
+                              fontSize: 12,
+                            ),
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: sessionCount,
+                          itemBuilder: (context, index) {
+                            final session = provider.sessions[index];
+                            return _SessionLink(
+                              session: session,
+                              selected: session.sessionId == provider.sessionId,
+                              onTap: () =>
+                                  provider.openSession(session.sessionId),
+                            );
+                          },
+                        ),
+                ),
+              ] else
+                const Spacer(),
+              const Divider(height: 24),
+              _AccountTile(compact: compact, onTap: openSettings),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Brand extends StatelessWidget {
+  const _Brand({required this.compact, required this.onNewChat});
+  final bool compact;
+  final VoidCallback onNewChat;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: compact
+          ? MainAxisAlignment.center
+          : MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.auto_awesome,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+            if (!compact) ...[
+              const SizedBox(width: 10),
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '知天',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  ),
+                  Text(
+                    '智能工作台',
+                    style: TextStyle(color: AppColors.textMuted, fontSize: 10),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+        if (!compact)
+          IconButton(
+            tooltip: '新建对话',
+            onPressed: onNewChat,
+            icon: const Icon(Icons.add_comment, size: 20),
+          ),
+      ],
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  const _NavItem({
+    required this.compact,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.selected = false,
+  });
+  final bool compact;
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Material(
+        color: selected ? AppColors.primaryContainer : Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: SizedBox(
+            height: 42,
+            child: Row(
+              mainAxisAlignment: compact
+                  ? MainAxisAlignment.center
+                  : MainAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: compact ? 42 : 44,
+                  child: Icon(
+                    icon,
+                    size: 20,
+                    color: selected ? AppColors.primary : AppColors.textMuted,
+                  ),
+                ),
+                if (!compact)
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                      color: selected ? AppColors.text : AppColors.textMuted,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SessionLink extends StatelessWidget {
+  const _SessionLink({
+    required this.session,
+    required this.selected,
+    required this.onTap,
+  });
+  final ChatSessionSummary session;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected ? AppColors.surfaceContainer : Colors.transparent,
+      borderRadius: BorderRadius.circular(7),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(7),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  session.visibleTitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '${session.messageCount}',
+                style: const TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 10,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AccountTile extends StatelessWidget {
+  const _AccountTile({required this.compact, required this.onTap});
+  final bool compact;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<SharedPreferences>(
+      future: SharedPreferences.getInstance(),
+      builder: (context, snapshot) {
+        final prefs = snapshot.data;
+        final savedName =
+            prefs?.getString(ApiService.usernameKey)?.trim() ?? '';
+        final username = savedName.isEmpty ? '当前账号' : savedName;
+        final role = prefs?.getString(ApiService.userRoleKey) ?? 'customer';
+        final roleName = role == 'reviewer'
+            ? '审核员账号'
+            : role == 'employee'
+            ? '员工账号'
+            : '个人账号';
+        return InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Row(
+              mainAxisAlignment: compact
+                  ? MainAxisAlignment.center
+                  : MainAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: AppColors.primaryContainer,
+                  foregroundColor: AppColors.primary,
+                  child: Text(
+                    username.substring(0, 1).toUpperCase(),
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+                if (!compact) ...[
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          username,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          roleName,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: AppColors.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(
+                    Icons.unfold_more,
+                    size: 17,
+                    color: AppColors.textMuted,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _WorkspaceHeader extends StatelessWidget {
+  const _WorkspaceHeader({
+    required this.provider,
+    required this.showModeSelector,
+  });
+  final ChatProvider provider;
+  final bool showModeSelector;
+
+  @override
+  Widget build(BuildContext context) {
+    var title = '新对话';
+    for (final session in provider.sessions) {
+      if (session.sessionId == provider.sessionId) {
+        title = session.visibleTitle;
+        break;
+      }
     }
-    return true;
+    return Container(
+      height: 68,
+      padding: const EdgeInsets.symmetric(horizontal: 28),
+      decoration: const BoxDecoration(
+        color: AppColors.background,
+        border: Border(bottom: BorderSide(color: AppColors.border)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  provider.mode == 'expert' ? '专家代理正在工作' : '快速助手已就绪',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (showModeSelector) ...[
+            SegmentedButton<String>(
+              segments: const [
+                ButtonSegment(value: 'fast', label: Text('快速')),
+                ButtonSegment(value: 'expert', label: Text('专家')),
+              ],
+              selected: {provider.mode},
+              onSelectionChanged: provider.isSending
+                  ? null
+                  : (selection) => provider.setMode(selection.first),
+              showSelectedIcon: false,
+              style: const ButtonStyle(visualDensity: VisualDensity.compact),
+            ),
+            const SizedBox(width: 12),
+          ],
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: provider.isSending
+                  ? AppColors.primaryContainer
+                  : AppColors.surfaceLow,
+              border: Border.all(color: AppColors.border),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 7,
+                  height: 7,
+                  decoration: BoxDecoration(
+                    color: provider.isSending
+                        ? AppColors.primary
+                        : AppColors.success,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 7),
+                Text(
+                  provider.isSending ? '处理中' : '在线',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RightPanel extends StatelessWidget {
+  const _RightPanel({
+    required this.provider,
+    required this.openHistory,
+    required this.openFiles,
+    required this.openToolbox,
+    required this.openSettings,
+  });
+  final ChatProvider provider;
+  final VoidCallback openHistory;
+  final VoidCallback openFiles;
+  final VoidCallback openToolbox;
+  final VoidCallback openSettings;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 310,
+      decoration: const BoxDecoration(
+        color: AppColors.surfaceLow,
+        border: Border(left: BorderSide(color: AppColors.border)),
+      ),
+      child: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(18, 20, 18, 18),
+          children: [
+            const _PanelHeading(title: '工作模式', icon: Icons.tune),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: SegmentedButton<String>(
+                segments: const [
+                  ButtonSegment(value: 'fast', label: Text('快速')),
+                  ButtonSegment(value: 'expert', label: Text('专家')),
+                ],
+                selected: {provider.mode},
+                onSelectionChanged: provider.isSending
+                    ? null
+                    : (selection) => provider.setMode(selection.first),
+                showSelectedIcon: false,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _ModeSummary(mode: provider.mode),
+            const SizedBox(height: 26),
+            const _PanelHeading(title: '可用能力', icon: Icons.widgets_outlined),
+            const SizedBox(height: 10),
+            const _UtilityCard(
+              icon: Icons.attach_file,
+              title: '附件阅读',
+              subtitle: '在输入框上传文档并结合内容提问',
+            ),
+            _UtilityCard(
+              icon: Icons.build_outlined,
+              title: '格式与 PDF 工具',
+              subtitle: '转换、合并和拆分本地文档',
+              onTap: openToolbox,
+            ),
+            _UtilityCard(
+              icon: Icons.folder_outlined,
+              title: '我的文件',
+              subtitle: '查看、预览、下载和管理产物',
+              onTap: openFiles,
+            ),
+            _UtilityCard(
+              icon: Icons.history,
+              title: '历史记录',
+              subtitle: '${provider.sessions.length} 个可用会话',
+              onTap: openHistory,
+            ),
+            const SizedBox(height: 20),
+            const _PanelHeading(title: '知识与上下文', icon: Icons.storage_outlined),
+            const SizedBox(height: 10),
+            const _InfoRow(label: '企业知识库', value: '已连接'),
+            const _InfoRow(label: '长期记忆', value: '自动检索'),
+            const _InfoRow(label: '附件上下文', value: '按本轮注入'),
+            const SizedBox(height: 20),
+            OutlinedButton.icon(
+              onPressed: openSettings,
+              icon: const Icon(Icons.settings_outlined, size: 18),
+              label: const Text('工作台设置'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PanelHeading extends StatelessWidget {
+  const _PanelHeading({required this.title, required this.icon});
+  final String title;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 17, color: AppColors.primary),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+        ),
+      ],
+    );
+  }
+}
+
+class _ModeSummary extends StatelessWidget {
+  const _ModeSummary({required this.mode});
+  final String mode;
+
+  @override
+  Widget build(BuildContext context) {
+    final expert = mode == 'expert';
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        expert ? '完整意图分类、联网搜索、复杂任务、文件生成与转换。' : '上下文问答、知识库检索与附件阅读，单次最多 2 次模型调用。',
+        style: const TextStyle(
+          fontSize: 11,
+          color: AppColors.textMuted,
+          height: 1.55,
+        ),
+      ),
+    );
+  }
+}
+
+class _UtilityCard extends StatelessWidget {
+  const _UtilityCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    this.onTap,
+  });
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 7),
+      child: Material(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(8),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.all(11),
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.border),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(icon, size: 20, color: AppColors.primary),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: AppColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (onTap != null)
+                  const Icon(
+                    Icons.chevron_right,
+                    size: 18,
+                    color: AppColors.textMuted,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({required this.label, required this.value});
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 7),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -164,13 +905,33 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Text(
-        '开始对话',
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w400,
-          color: Color(0xFF666666),
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 54,
+            height: 54,
+            decoration: BoxDecoration(
+              color: AppColors.primaryContainer,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              Icons.auto_awesome_outlined,
+              color: AppColors.primary,
+              size: 28,
+            ),
+          ),
+          const SizedBox(height: 18),
+          const Text(
+            '开始对话',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            '对话、检索、阅读附件或生成可交付文件',
+            style: TextStyle(fontSize: 13, color: AppColors.textMuted),
+          ),
+        ],
       ),
     );
   }

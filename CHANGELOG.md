@@ -66,3 +66,70 @@
 - Message模型新增Citation字段，ApiService支持解析/chat/stream中的citations SSE事件，ChatProvider将引用绑定到当前assistant消息。
 - MessageBubble新增可展开“引用来源”区域，仅assistant消息存在citations时显示，展开后展示文件名和片段编号，不展示内部score。
 - 验证flutter analyze和flutter test通过；测试覆盖流式结束后出现引用来源且展开可见。
+
+## 2026-07-15
+- expert聊天新增classify决策理由展示：ApiService识别正文前的reasoning SSE事件，ChatProvider只在当前assistant消息内存中保存，MessageBubble以浅色小字展示。
+- fast模式或空reasoning不显示理由；现有正文chunk、citations和`[DONE]`处理保持不变，不新增本地持久化字段。
+- `flutter analyze`无问题，完整客户端测试`10 tests passed`，覆盖reasoning解析、正文拼接、结束事件和气泡展示。
+- 新增独立工具箱页面和聊天页工具箱入口，支持选择`.doc/.xls/.xlsx/.ppt/.pptx`、显示转换状态并下载个人转换产物。
+- ApiService新增带JWT的`/tools/convert` multipart上传和`/tools/convert/{file_id}`下载封装，不复用聊天SSE逻辑；新增`file_picker`用于选择输入文件和保存转换结果。
+- `flutter analyze`无问题，完整客户端测试增至`12 tests passed`，覆盖上传/下载请求封装、认证头、结构化响应解析和工具箱导航。
+- 新增“我的文件”页面和聊天页文件夹入口，展示当前用户的聊天附件、生成文件和转换产物，支持刷新、认证下载及二次确认删除。
+- 工具箱下载由旧`/tools/convert/{file_id}`迁移到统一`/files/{file_id}`；ApiService新增`GET /files`与`DELETE /files/{file_id}`封装。`flutter analyze`无问题，完整客户端测试增至`14 tests passed`。
+
+## 2026-07-15 工具箱拖拽与聊天附件入口
+- 工具箱文件区改为整区可点击，并新增`desktop_drop`桌面拖拽；点击与拖拽统一执行格式、20MB大小校验和转换上传，取消选择不触发请求，上传中禁止重复操作。
+- 聊天输入区新增多附件选择按钮和内存态附件chip，支持TXT/Markdown/PDF/Word/Excel/PowerPoint；展示上传中、成功和失败状态，上传未完成时禁用发送。
+- `ApiService`新增认证附件multipart上传，`ChatProvider`在SSE请求中发送成功附件的`attachment_ids`；收到`[DONE]`后清空附件，发送失败时保留，新建会话时清空。
+- `flutter pub get`成功，`flutter analyze`无问题，完整客户端测试增至`18 tests passed`；关闭占用旧构建的客户端后Windows Debug构建成功，并已重新启动新版应用，系统文件对话框与拖拽操作仍需在原生窗口中人工点击复核。
+
+## 2026-07-16 SSE长任务超时调整
+- `/chat/stream`建立连接和相邻SSE事件的等待阈值由30秒提高到90秒，并配合后端15秒SSE心跳，避免文件生成已完成但客户端提前显示请求超时。
+- 心跳采用SSE注释，不进入现有JSON解析、聊天正文或历史消息；`flutter analyze`无问题，完整客户端测试`18 tests passed`。
+
+## 2026-07-16 纯附件发送与历史会话恢复
+- 当前`session_id`写入SharedPreferences，历史页从后端加载当前用户全部会话并可恢复消息；新建对话追加到列表，不再覆盖既有会话状态。
+- 发送校验改为文字或成功附件至少存在一项；用户消息保存附件ID和文件名，当前及历史消息气泡均展示只读附件chip。
+- 快速/专家切换旁新增轻量能力说明，明确快速模式最多2次模型调用且不支持联网、生成和转换，专家模式保留完整能力。
+- `flutter analyze`无问题，完整客户端测试增至`21 tests passed`。
+
+## 2026-07-16 纯附件消息气泡显示修复
+- 根因确认请求体已正确发送`attachment_ids`；空白来自气泡只按`attachment_filenames`渲染，历史或实时消息缺文件名映射时没有可见内容。
+- 聊天列表改为文字或附件ID任一存在即保留消息；附件文件名缺失时显示稳定的“附件 N”chip，实时消息和历史回显使用同一逻辑。
+- 新增纯附件无文件名的组件测试，并保持已有附件文件名chip行为不变。
+- `flutter analyze`无问题，完整客户端回归`22 tests passed`。
+
+## 2026-07-17 历史会话快捷管理
+- 历史列表每项新增重命名和删除入口；重命名支持1-50字符及恢复默认标题，删除前二次确认。
+- 列表优先显示后端`display_name`，为空时继续使用原首条消息标题；删除当前会话后自动创建新会话，避免停留在已删除状态。
+- ApiService新增认证PATCH/DELETE会话管理调用及对应组件/API测试；`flutter analyze`无问题，完整回归`24 tests passed`。
+
+## 2026-07-17 我的文件快速预览
+- TXT/Markdown/PDF/DOCX文件新增预览入口，其他格式不显示；预览使用独立页面，不影响现有下载和删除操作。
+- 预览页展示加载、明确错误、可选择纯文本和“内容较长，已截断显示”提示；项目无Markdown渲染依赖，因此本轮不新增依赖并统一按纯文本展示。
+- ApiService新增认证预览请求和结构化响应模型；`flutter analyze`无问题，完整回归`25 tests passed`。
+
+## 2026-07-17 PDF合并与拆分工具
+- 工具箱新增“PDF合并”和“PDF拆分”模式；合并支持2-10个PDF多选或拖入，拆分支持单文件，均复用现有20MB前置校验与处理状态。
+- ApiService新增认证multipart合并/拆分请求，成功产物继续通过统一`/files/{file_id}`下载；拆分结果按页展示并支持逐项保存。
+- 新增请求体字段与工具箱入口测试；`flutter analyze`无问题，完整客户端回归`26 tests passed`。
+
+## 2026-07-17 PDF工具箱选择回归修复
+- 格式转换扩展名集中为单一共享常量，明确包含DOC/XLS/XLSX/PPT/PPTX；后端真实五格式转换均成功，未发现服务端白名单缩减。
+- PDF合并选择改为待提交列表：多次打开选择器或拖拽会继续追加，按编号展示合并顺序，每项可独立移除；不再因首次只选1项而报错或自动提交。
+- 格式转换和PDF拆分继续使用单文件流程，模式切换清空选择状态；`flutter analyze`无问题，完整客户端回归`27 tests passed`。
+
+## 2026-07-17 工具箱六向格式转换
+- 修复Word选择器遗漏`.docx`的问题，格式转换新增PDF转Word/Excel/PPT及Word/Excel/PPT转PDF六个明确选项，各选项只显示对应可选扩展名。
+- 六个方向共享结构化转换配置，客户端随上传发送目标格式，避免界面标签、文件过滤器和请求参数各自硬编码后再次分叉。
+- `flutter analyze`无问题，完整客户端回归`27 tests passed`；PDF反向转换为后端尽力重建，不承诺扫描件OCR或复杂版式无损恢复。
+
+## 2026-07-17 Bronze Intelligence界面升级
+- 依据`app模板`建立统一Flutter设计令牌：暖铜主色、暖灰分层表面、低阴影边框、8/12/16px圆角和900-960px内容宽度，替换原先分散的蓝灰色硬编码。
+- 重做聊天工作区、消息与引用卡片、附件输入器、空状态、登录页和工具箱；历史、我的文件、文件预览及设置页同步使用统一主题和阅读宽度，原有功能与导航入口保持不变。
+- 保留新建对话图标和“开始对话”语义契约以兼容既有组件测试；`flutter analyze`无问题、完整回归`27 tests passed`，Windows Release构建成功。
+
+## 2026-07-17 模板驱动三栏工作台重构
+- 聊天首页按`app模板`的固定-流式-固定结构重建：左栏集中品牌、新建会话、全局导航、最近会话与底部账号，中栏专注对话和输入，右栏集中模式选择、已接入工具及知识上下文状态。
+- 现有历史、文件库、格式/PDF工具箱、附件阅读、快速/专家模式与设置均接入新工作台；模板中的团队协作、工作流、通知、分享等尚无业务实现的模块未保留。
+- 窄窗口自动收缩左栏并将模式切换移入中栏标题，宽窗口展示完整三栏；`flutter analyze`无问题、完整回归`27 tests passed`，Windows Release构建成功。

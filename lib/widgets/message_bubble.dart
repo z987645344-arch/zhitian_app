@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/message.dart';
 import 'streaming_cursor.dart';
+import '../theme/app_theme.dart';
 
 class MessageBubble extends StatefulWidget {
   const MessageBubble({super.key, required this.message});
@@ -19,21 +20,21 @@ class _MessageBubbleState extends State<MessageBubble> {
   Widget build(BuildContext context) {
     final message = widget.message;
     final isUser = message.isUser;
-    final bubbleColor = isUser
-        ? const Color(0xFF1A73E8)
-        : const Color(0xFFF5F5F5);
-    final textColor = isUser ? Colors.white : const Color(0xFF1A1A1A);
+    final bubbleColor = isUser ? AppColors.primary : AppColors.surface;
+    final textColor = isUser ? Colors.white : AppColors.text;
     final showCitations =
         !isUser && !message.isStreaming && message.citations.isNotEmpty;
+    final showReasoning =
+        !isUser && (message.reasoning?.trim().isNotEmpty ?? false);
+    final attachmentLabels = message.attachmentLabels;
+    final showAttachments = attachmentLabels.isNotEmpty;
 
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.sizeOf(context).width * 0.75,
-        ),
+        constraints: BoxConstraints(maxWidth: 720),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           child: Column(
             crossAxisAlignment: isUser
                 ? CrossAxisAlignment.end
@@ -41,22 +42,74 @@ class _MessageBubbleState extends State<MessageBubble> {
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
+                  horizontal: 16,
+                  vertical: 13,
                 ),
                 decoration: BoxDecoration(
                   color: bubbleColor,
                   borderRadius: BorderRadius.only(
                     topLeft: const Radius.circular(16),
                     topRight: const Radius.circular(16),
-                    bottomLeft: Radius.circular(isUser ? 16 : 4),
-                    bottomRight: Radius.circular(isUser ? 4 : 16),
+                    bottomLeft: Radius.circular(isUser ? 16 : 6),
+                    bottomRight: Radius.circular(isUser ? 6 : 16),
                   ),
+                  border: isUser ? null : Border.all(color: AppColors.border),
                 ),
-                child: _BubbleText(
-                  content: message.content,
-                  color: textColor,
-                  showCursor: message.isStreaming,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (showReasoning) ...[
+                      Text(
+                        message.reasoning!,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textMuted,
+                          fontSize: 12,
+                          height: 1.3,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                    ],
+                    if (message.content.isNotEmpty)
+                      _BubbleText(
+                        content: message.content,
+                        color: textColor,
+                        showCursor: message.isStreaming,
+                      ),
+                    if (showAttachments) ...[
+                      if (message.content.isNotEmpty) const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          for (final filename in attachmentLabels)
+                            Chip(
+                              avatar: Icon(
+                                Icons.attach_file,
+                                size: 15,
+                                color: isUser
+                                    ? Colors.white
+                                    : AppColors.primary,
+                              ),
+                              label: Text(filename),
+                              visualDensity: VisualDensity.compact,
+                              backgroundColor: isUser
+                                  ? Colors.white.withValues(alpha: 0.16)
+                                  : AppColors.surfaceLow,
+                              labelStyle: TextStyle(
+                                color: textColor,
+                                fontSize: 12,
+                              ),
+                              side: BorderSide(
+                                color: isUser
+                                    ? Colors.white54
+                                    : AppColors.border,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ],
                 ),
               ),
               if (showCitations)
@@ -88,7 +141,7 @@ class _BubbleText extends StatelessWidget {
   Widget build(BuildContext context) {
     final style = Theme.of(
       context,
-    ).textTheme.bodyMedium?.copyWith(color: color, fontSize: 15, height: 1.35);
+    ).textTheme.bodyMedium?.copyWith(color: color, fontSize: 15, height: 1.55);
 
     return Wrap(
       crossAxisAlignment: WrapCrossAlignment.center,
@@ -119,9 +172,9 @@ class _CitationPanel extends StatelessWidget {
       padding: const EdgeInsets.only(top: 6),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: const Color(0xFFF5F5F5),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFFE0E0E0)),
+          color: AppColors.surfaceLow,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.border),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,13 +193,13 @@ class _CitationPanel extends StatelessWidget {
                     const Icon(
                       Icons.article_outlined,
                       size: 15,
-                      color: Color(0xFF1A73E8),
+                      color: AppColors.primary,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       '引用来源 ${uniqueCitations.length}',
                       style: const TextStyle(
-                        color: Color(0xFF1A73E8),
+                        color: AppColors.primary,
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                       ),
@@ -155,7 +208,7 @@ class _CitationPanel extends StatelessWidget {
                     Icon(
                       expanded ? Icons.expand_less : Icons.expand_more,
                       size: 16,
-                      color: const Color(0xFF1A73E8),
+                      color: AppColors.primary,
                     ),
                   ],
                 ),
@@ -167,7 +220,7 @@ class _CitationPanel extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Divider(height: 1, color: Color(0xFFE0E0E0)),
+                    const Divider(height: 1, color: AppColors.border),
                     const SizedBox(height: 6),
                     for (final citation in uniqueCitations)
                       Padding(
@@ -175,7 +228,7 @@ class _CitationPanel extends StatelessWidget {
                         child: Text(
                           _citationLabel(citation),
                           style: const TextStyle(
-                            color: Color(0xFF666666),
+                            color: AppColors.textMuted,
                             fontSize: 13,
                             height: 1.3,
                           ),

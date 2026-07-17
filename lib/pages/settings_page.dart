@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/chat_provider.dart';
 import '../services/api_service.dart';
 import 'login_page.dart';
+import '../theme/app_theme.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -83,101 +84,98 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('设置'),
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF1A1A1A),
-        surfaceTintColor: Colors.white,
-        titleTextStyle: const TextStyle(
-          color: Color(0xFF1A1A1A),
-          fontSize: 17,
-          fontWeight: FontWeight.w600,
-        ),
-        shape: const Border(bottom: BorderSide(color: Color(0xFFE0E0E0))),
+        shape: const Border(bottom: BorderSide(color: AppColors.border)),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _SettingsCard(
-                  title: '后端连接',
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 760),
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(28, 28, 28, 40),
                   children: [
-                    TextField(
-                      controller: _backendController,
-                      keyboardType: TextInputType.url,
-                      style: const TextStyle(fontSize: 15),
-                      decoration: _inputDecoration(
-                        label: '后端地址',
-                        hint: ApiService.defaultBackendUrl,
-                        icon: Icons.dns_outlined,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
+                    _SettingsCard(
+                      title: '后端连接',
                       children: [
-                        FilledButton.icon(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: const Color(0xFF1A73E8),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                        TextField(
+                          controller: _backendController,
+                          keyboardType: TextInputType.url,
+                          style: const TextStyle(fontSize: 15),
+                          decoration: _inputDecoration(
+                            label: '后端地址',
+                            hint: ApiService.defaultBackendUrl,
+                            icon: Icons.dns_outlined,
                           ),
-                          onPressed: _isSaving ? null : _saveBackendUrl,
-                          icon: _isSaving
-                              ? const SizedBox.square(
-                                  dimension: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Icon(Icons.save_outlined),
-                          label: const Text('保存'),
                         ),
-                        const SizedBox(width: 10),
-                        OutlinedButton.icon(
-                          onPressed: _isTesting ? null : _testConnection,
-                          icon: _isTesting
-                              ? const SizedBox.square(
-                                  dimension: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Icon(Icons.network_check_outlined),
-                          label: const Text('测试连接'),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            FilledButton.icon(
+                              style: FilledButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onPressed: _isSaving ? null : _saveBackendUrl,
+                              icon: _isSaving
+                                  ? const SizedBox.square(
+                                      dimension: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Icon(Icons.save_outlined),
+                              label: const Text('保存'),
+                            ),
+                            const SizedBox(width: 10),
+                            OutlinedButton.icon(
+                              onPressed: _isTesting ? null : _testConnection,
+                              icon: _isTesting
+                                  ? const SizedBox.square(
+                                      dimension: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Icon(Icons.network_check_outlined),
+                              label: const Text('测试连接'),
+                            ),
+                          ],
+                        ),
+                        if (_healthStatus != null) ...[
+                          const SizedBox(height: 12),
+                          _StatusBox(
+                            status: _healthStatus!,
+                            color: _statusColor(),
+                            icon: _statusIcon(),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _SettingsCard(
+                      title: '账号',
+                      children: [
+                        TextButton.icon(
+                          style: TextButton.styleFrom(
+                            foregroundColor: const Color(0xFFD32F2F),
+                            alignment: Alignment.centerLeft,
+                          ),
+                          onPressed: _logout,
+                          icon: const Icon(Icons.logout),
+                          label: const Text('退出登录'),
                         ),
                       ],
                     ),
-                    if (_healthStatus != null) ...[
-                      const SizedBox(height: 12),
-                      _StatusBox(
-                        status: _healthStatus!,
-                        color: _statusColor(),
-                        icon: _statusIcon(),
-                      ),
-                    ],
                   ],
                 ),
-                const SizedBox(height: 16),
-                _SettingsCard(
-                  title: '账号',
-                  children: [
-                    TextButton.icon(
-                      style: TextButton.styleFrom(
-                        foregroundColor: const Color(0xFFD32F2F),
-                        alignment: Alignment.centerLeft,
-                      ),
-                      onPressed: _logout,
-                      icon: const Icon(Icons.logout),
-                      label: const Text('退出登录'),
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ),
     );
   }
@@ -193,25 +191,25 @@ class _SettingsPageState extends State<SettingsPage> {
       labelStyle: const TextStyle(color: Color(0xFF666666)),
       prefixIcon: Icon(icon, color: const Color(0xFF666666)),
       filled: true,
-      fillColor: Colors.white,
+      fillColor: AppColors.surface,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+        borderSide: const BorderSide(color: AppColors.border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+        borderSide: const BorderSide(color: AppColors.border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Color(0xFF1A73E8)),
+        borderSide: const BorderSide(color: AppColors.primary),
       ),
     );
   }
 
   Color _statusColor() {
     return switch (_healthStatus) {
-      'ok' => const Color(0xFF1A73E8),
+      'ok' => AppColors.success,
       'degraded' => const Color(0xFFF57C00),
       _ => const Color(0xFFD32F2F),
     };
@@ -236,8 +234,9 @@ class _SettingsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -254,7 +253,7 @@ class _SettingsCard extends StatelessWidget {
             ),
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
-              child: Divider(height: 1, color: Color(0xFFE0E0E0)),
+              child: Divider(height: 1, color: AppColors.border),
             ),
             ...children,
           ],
