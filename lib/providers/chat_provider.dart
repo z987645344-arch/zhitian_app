@@ -141,8 +141,30 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<bool> renameSession(String sessionId, String displayName) async {
+    if (_apiService is! MemoryService) return false;
+    final normalized = displayName.trim();
+    if (normalized.isEmpty || normalized.length > 50) return false;
+    final savedName = await (_apiService as MemoryService).renameSession(
+      sessionId,
+      normalized,
+    );
+    updateSessionDisplayName(sessionId, savedName);
+    return savedName != null;
+  }
+
+  Future<bool> deleteSession(String sessionId) async {
+    if (_apiService is! MemoryService) return false;
+    final deleted = await (_apiService as MemoryService).deleteSession(
+      sessionId,
+    );
+    if (deleted) removeSession(sessionId);
+    return deleted;
+  }
+
   void removeSession(String sessionId) {
     if (sessionId == _sessionId) {
+      _sessions.removeWhere((item) => item.sessionId == sessionId);
       newChat();
       return;
     }

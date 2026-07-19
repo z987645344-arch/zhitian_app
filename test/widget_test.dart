@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,6 +21,25 @@ import 'package:zhitian_app/widgets/message_bubble.dart';
 
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
+
+  testWidgets('compact navigation rail does not overflow at desktop width', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(785, 1137);
+    tester.view.devicePixelRatio = 1.25;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(_buildApp(ChatProvider(apiService: _FakeStreamingService())));
+    await tester.pumpAndSettle();
+
+    final exception = tester.takeException();
+    final details = exception is FlutterError
+        ? exception.diagnostics.map((node) => node.toString()).join('\n')
+        : '';
+    expect(exception, isNull, reason: details);
+  });
+
   testWidgets('chat shows thinking bubble before first real chunk', (
     WidgetTester tester,
   ) async {
@@ -102,19 +122,79 @@ void main() {
     expect(service.modes, ['fast', 'expert']);
   });
 
-  testWidgets('chat toolbar opens the independent toolbox page', (
+  testWidgets(
+    'workspace navigation replaces center content without new route',
+    (WidgetTester tester) async {
+      final provider = ChatProvider(apiService: _FakeStreamingService());
+      await tester.pumpWidget(_buildApp(provider));
+
+      await tester.tap(find.byIcon(Icons.build_outlined));
+      await tester.pumpAndSettle();
+
+      expect(find.text('工具箱'), findsNWidgets(2));
+      expect(find.text('开始转换'), findsOneWidget);
+      expect(find.text('PDF合并'), findsOneWidget);
+      expect(find.text('PDF拆分'), findsOneWidget);
+      expect(Navigator.of(tester.element(find.text('开始转换'))).canPop(), isFalse);
+
+      await tester.tap(find.text('对话'));
+      await tester.pumpAndSettle();
+      expect(find.text('开始对话'), findsOneWidget);
+    },
+  );
+
+  testWidgets('recent session supports double-click rename and hover delete', (
     WidgetTester tester,
   ) async {
-    final provider = ChatProvider(apiService: _FakeStreamingService());
+    final service = _WorkspaceMemoryService();
+    final provider = ChatProvider(
+      apiService: service,
+      initialSessionId: 'recent-session',
+    );
     await tester.pumpWidget(_buildApp(provider));
-
-    await tester.tap(find.byIcon(Icons.build_outlined));
     await tester.pumpAndSettle();
 
-    expect(find.text('工具箱'), findsOneWidget);
-    expect(find.text('开始转换'), findsOneWidget);
-    expect(find.text('PDF合并'), findsOneWidget);
-    expect(find.text('PDF拆分'), findsOneWidget);
+    final title = find.descendant(
+      of: find.byType(GestureDetector),
+      matching: find.text('第一轮对话'),
+    );
+    expect(title, findsOneWidget);
+    await tester.tap(title);
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tap(title);
+    await tester.pumpAndSettle();
+    expect(find.text('重命名会话'), findsOneWidget);
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextField),
+      ),
+      '新会话名称',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, '确定'));
+    await tester.pumpAndSettle();
+    expect(find.text('新会话名称'), findsWidgets);
+    expect(service.renamedDisplayName, '新会话名称');
+
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer();
+    await mouse.moveTo(tester.getCenter(find.text('2')));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('删除会话'), findsOneWidget);
+    await tester.tap(find.byTooltip('删除会话'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('确定删除'), findsOneWidget);
+    await tester.tap(find.widgetWithText(TextButton, '取消'));
+    await tester.pumpAndSettle();
+    expect(find.text('新会话名称'), findsWidgets);
+
+    await tester.tap(find.byTooltip('删除会话'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, '确定'));
+    await tester.pumpAndSettle();
+    expect(service.deletedSessionId, 'recent-session');
+    expect(find.text('新会话名称'), findsNothing);
+    await mouse.removePointer();
   });
 
   testWidgets('file library lists files and confirms deletion', (
@@ -512,6 +592,40 @@ class _FakeMemoryService implements MemoryService {
   @override
   Future<String?> renameSession(String sessionId, String? displayName) async {
     renamedSessionId = sessionId;
+    renamedDisplayName = displayName;
+    return displayName;
+  }
+
+  @override
+  Future<bool> deleteSession(String sessionId) async {
+    deletedSessionId = sessionId;
+    return true;
+  }
+}
+
+class _WorkspaceMemoryService extends _FakeStreamingService
+    implements MemoryService {
+  String? renamedDisplayName;
+  String? deletedSessionId;
+
+  @override
+  Future<List<ChatSessionSummary>> getSessions() async => [
+    ChatSessionSummary(
+      sessionId: 'recent-session',
+      title: '第一轮对话',
+      lastActive: '2026-07-19T10:00:00',
+      messageCount: 2,
+    ),
+  ];
+
+  @override
+  Future<List<Map>> getHistory(String sessionId) async => [];
+
+  @override
+  Future<bool> clearHistory(String sessionId) async => true;
+
+  @override
+  Future<String?> renameSession(String sessionId, String? displayName) async {
     renamedDisplayName = displayName;
     return displayName;
   }

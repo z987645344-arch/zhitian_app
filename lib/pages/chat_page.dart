@@ -15,6 +15,8 @@ import 'history_page.dart';
 import 'settings_page.dart';
 import 'toolbox_page.dart';
 
+enum _WorkspaceSection { chat, history, files, toolbox, settings }
+
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
 
@@ -25,6 +27,7 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  _WorkspaceSection _section = _WorkspaceSection.chat;
 
   @override
   void initState() {
@@ -59,6 +62,118 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
+  void _showSection(_WorkspaceSection section) {
+    if (_section == section) return;
+    setState(() => _section = section);
+  }
+
+  void _startNewChat(ChatProvider provider) {
+    provider.newChat();
+    _showSection(_WorkspaceSection.chat);
+  }
+
+  Future<void> _openRecentSession(
+    ChatProvider provider,
+    String sessionId,
+  ) async {
+    await provider.openSession(sessionId);
+    if (mounted) _showSection(_WorkspaceSection.chat);
+  }
+
+  Future<void> _renameRecentSession(
+    ChatProvider provider,
+    ChatSessionSummary session,
+  ) async {
+    var editedName = session.displayName ?? '';
+    final name = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('重命名会话'),
+        content: TextFormField(
+          initialValue: editedName,
+          autofocus: true,
+          maxLength: 50,
+          decoration: const InputDecoration(hintText: '输入1-50个字符'),
+          onChanged: (value) => editedName = value,
+          onFieldSubmitted: (value) {
+            final normalized = value.trim();
+            if (normalized.isNotEmpty && normalized.length <= 50) {
+              Navigator.of(dialogContext).pop(normalized);
+            }
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final normalized = editedName.trim();
+              if (normalized.isNotEmpty && normalized.length <= 50) {
+                Navigator.of(dialogContext).pop(normalized);
+              }
+            },
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    );
+    if (name == null || !mounted) return;
+    try {
+      final saved = await provider.renameSession(session.sessionId, name);
+      if (!saved && mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('重命名失败，请稍后重试')));
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('重命名失败，请稍后重试')));
+      }
+    }
+  }
+
+  Future<void> _deleteRecentSession(
+    ChatProvider provider,
+    ChatSessionSummary session,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('删除会话'),
+        content: Text('确定删除“${session.visibleTitle}”及其全部记录吗？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    try {
+      final deleted = await provider.deleteSession(session.sessionId);
+      if (!deleted && mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('删除失败，请稍后重试')));
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('删除失败，请稍后重试')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ChatProvider>(
@@ -66,10 +181,6 @@ class _ChatPageState extends State<ChatPage> {
         _scrollToBottom();
         final messages = provider.messages.where(_shouldShowMessage).toList();
         final itemCount = messages.length + (provider.isThinking ? 1 : 0);
-        void open(Widget page) => Navigator.of(
-          context,
-        ).push(MaterialPageRoute<void>(builder: (_) => page));
-
         return Scaffold(
           body: LayoutBuilder(
             builder: (context, constraints) {
@@ -80,100 +191,128 @@ class _ChatPageState extends State<ChatPage> {
                   _LeftPanel(
                     compact: compactRail,
                     provider: provider,
-                    openHistory: () => open(const HistoryPage()),
-                    openFiles: () => open(const FilesPage()),
-                    openToolbox: () => open(const ToolboxPage()),
-                    openSettings: () => open(const SettingsPage()),
+                    section: _section,
+                    onNewChat: () => _startNewChat(provider),
+                    openChat: () => _showSection(_WorkspaceSection.chat),
+                    openHistory: () => _showSection(_WorkspaceSection.history),
+                    openFiles: () => _showSection(_WorkspaceSection.files),
+                    openToolbox: () => _showSection(_WorkspaceSection.toolbox),
+                    openSettings: () =>
+                        _showSection(_WorkspaceSection.settings),
+                    openSession: (session) =>
+                        _openRecentSession(provider, session.sessionId),
+                    renameSession: (session) =>
+                        _renameRecentSession(provider, session),
+                    deleteSession: (session) =>
+                        _deleteRecentSession(provider, session),
                   ),
                   Expanded(
-                    child: ColoredBox(
-                      color: AppColors.background,
-                      child: Column(
-                        children: [
-                          _WorkspaceHeader(
-                            provider: provider,
-                            showModeSelector: !showInspector,
-                          ),
-                          Expanded(
-                            child: Center(
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  maxWidth: 900,
+                    child: _section == _WorkspaceSection.chat
+                        ? ColoredBox(
+                            color: AppColors.background,
+                            child: Column(
+                              children: [
+                                _WorkspaceHeader(
+                                  provider: provider,
+                                  showModeSelector: !showInspector,
                                 ),
-                                child: itemCount == 0
-                                    ? const _EmptyState()
-                                    : ListView.builder(
-                                        controller: _scrollController,
-                                        padding: const EdgeInsets.fromLTRB(
-                                          32,
-                                          26,
-                                          32,
-                                          18,
-                                        ),
-                                        itemCount: itemCount,
-                                        itemBuilder: (context, index) {
-                                          if (provider.isThinking &&
-                                              index == messages.length) {
-                                            return const ThinkingBubble();
-                                          }
-                                          return MessageBubble(
-                                            message: messages[index],
-                                          );
-                                        },
+                                Expanded(
+                                  child: Center(
+                                    child: ConstrainedBox(
+                                      constraints: const BoxConstraints(
+                                        maxWidth: 900,
                                       ),
-                              ),
-                            ),
-                          ),
-                          Center(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 900),
-                              child: Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  24,
-                                  0,
-                                  24,
-                                  18,
-                                ),
-                                child: Column(
-                                  children: [
-                                    ChatComposer(
-                                      controller: _controller,
-                                      isSending: provider.isSending,
-                                      pendingAttachments:
-                                          provider.pendingAttachments,
-                                      hasUploadingAttachments:
-                                          provider.hasUploadingAttachments,
-                                      hasSuccessfulAttachments:
-                                          provider.hasSuccessfulAttachments,
-                                      onAddAttachment: provider.addAttachment,
-                                      onRemoveAttachment:
-                                          provider.removeAttachment,
-                                      onSend: () => _send(provider),
+                                      child: itemCount == 0
+                                          ? const _EmptyState()
+                                          : ListView.builder(
+                                              controller: _scrollController,
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                    32,
+                                                    26,
+                                                    32,
+                                                    18,
+                                                  ),
+                                              itemCount: itemCount,
+                                              itemBuilder: (context, index) {
+                                                if (provider.isThinking &&
+                                                    index == messages.length) {
+                                                  return const ThinkingBubble();
+                                                }
+                                                return MessageBubble(
+                                                  message: messages[index],
+                                                );
+                                              },
+                                            ),
                                     ),
-                                    const SizedBox(height: 8),
-                                    const Text(
-                                      'AI 生成内容仅供参考，请结合实际情况判断',
-                                      style: TextStyle(
-                                        color: AppColors.textMuted,
-                                        fontSize: 10,
+                                  ),
+                                ),
+                                Center(
+                                  child: ConstrainedBox(
+                                    constraints: const BoxConstraints(
+                                      maxWidth: 900,
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                        24,
+                                        0,
+                                        24,
+                                        18,
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          ChatComposer(
+                                            controller: _controller,
+                                            isSending: provider.isSending,
+                                            pendingAttachments:
+                                                provider.pendingAttachments,
+                                            hasUploadingAttachments: provider
+                                                .hasUploadingAttachments,
+                                            hasSuccessfulAttachments: provider
+                                                .hasSuccessfulAttachments,
+                                            onAddAttachment:
+                                                provider.addAttachment,
+                                            onRemoveAttachment:
+                                                provider.removeAttachment,
+                                            onSend: () => _send(provider),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          const Text(
+                                            'AI 生成内容仅供参考，请结合实际情况判断',
+                                            style: TextStyle(
+                                              color: AppColors.textMuted,
+                                              fontSize: 10,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  ],
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
+                          )
+                        : switch (_section) {
+                            _WorkspaceSection.history => HistoryPage(
+                              onSessionOpened: () =>
+                                  _showSection(_WorkspaceSection.chat),
+                            ),
+                            _WorkspaceSection.files => const FilesPage(),
+                            _WorkspaceSection.toolbox => const ToolboxPage(),
+                            _WorkspaceSection.settings => const SettingsPage(),
+                            _WorkspaceSection.chat => const SizedBox.shrink(),
+                          },
                   ),
-                  if (showInspector)
+                  if (showInspector && _section == _WorkspaceSection.chat)
                     _RightPanel(
                       provider: provider,
-                      openHistory: () => open(const HistoryPage()),
-                      openFiles: () => open(const FilesPage()),
-                      openToolbox: () => open(const ToolboxPage()),
-                      openSettings: () => open(const SettingsPage()),
+                      openHistory: () =>
+                          _showSection(_WorkspaceSection.history),
+                      openFiles: () => _showSection(_WorkspaceSection.files),
+                      openToolbox: () =>
+                          _showSection(_WorkspaceSection.toolbox),
+                      openSettings: () =>
+                          _showSection(_WorkspaceSection.settings),
                     ),
                 ],
               );
@@ -192,18 +331,30 @@ class _LeftPanel extends StatelessWidget {
   const _LeftPanel({
     required this.compact,
     required this.provider,
+    required this.section,
+    required this.onNewChat,
+    required this.openChat,
     required this.openHistory,
     required this.openFiles,
     required this.openToolbox,
     required this.openSettings,
+    required this.openSession,
+    required this.renameSession,
+    required this.deleteSession,
   });
 
   final bool compact;
   final ChatProvider provider;
+  final _WorkspaceSection section;
+  final VoidCallback onNewChat;
+  final VoidCallback openChat;
   final VoidCallback openHistory;
   final VoidCallback openFiles;
   final VoidCallback openToolbox;
   final VoidCallback openSettings;
+  final ValueChanged<ChatSessionSummary> openSession;
+  final ValueChanged<ChatSessionSummary> renameSession;
+  final ValueChanged<ChatSessionSummary> deleteSession;
 
   @override
   Widget build(BuildContext context) {
@@ -219,58 +370,62 @@ class _LeftPanel extends StatelessWidget {
       child: SafeArea(
         child: Padding(
           padding: EdgeInsets.fromLTRB(
-            compact ? 10 : 16,
+            compact ? 8 : 16,
             18,
-            compact ? 10 : 16,
+            compact ? 8 : 16,
             14,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _Brand(compact: compact, onNewChat: provider.newChat),
+              _Brand(compact: compact, onNewChat: onNewChat),
               const SizedBox(height: 22),
               if (compact)
                 IconButton.filled(
                   tooltip: '新建对话',
-                  onPressed: provider.newChat,
+                  onPressed: onNewChat,
                   icon: const Icon(Icons.add_comment),
                 )
               else
                 FilledButton.icon(
-                  onPressed: provider.newChat,
+                  onPressed: onNewChat,
                   icon: const Icon(Icons.add, size: 19),
                   label: const Text('新建对话'),
                 ),
               const SizedBox(height: 18),
               _NavItem(
                 compact: compact,
-                selected: true,
+                selected: section == _WorkspaceSection.chat,
                 icon: Icons.chat_bubble_outline,
                 label: '对话',
-                onTap: () {},
+                onTap: openChat,
               ),
               _NavItem(
                 compact: compact,
                 icon: Icons.history,
                 label: '历史记录',
+                selected: section == _WorkspaceSection.history,
                 onTap: openHistory,
               ),
               _NavItem(
                 compact: compact,
                 icon: Icons.folder_outlined,
                 label: '我的文件',
+                selected: section == _WorkspaceSection.files,
                 onTap: openFiles,
               ),
               _NavItem(
                 compact: compact,
                 icon: Icons.build_outlined,
                 label: '工具箱',
+                selected: section == _WorkspaceSection.toolbox,
                 onTap: openToolbox,
               ),
               _NavItem(
                 compact: compact,
                 icon: Icons.settings_outlined,
                 label: '设置',
+                selected: section == _WorkspaceSection.settings,
                 onTap: openSettings,
               ),
               if (!compact) ...[
@@ -304,8 +459,9 @@ class _LeftPanel extends StatelessWidget {
                             return _SessionLink(
                               session: session,
                               selected: session.sessionId == provider.sessionId,
-                              onTap: () =>
-                                  provider.openSession(session.sessionId),
+                              onTap: () => openSession(session),
+                              onRename: () => renameSession(session),
+                              onDelete: () => deleteSession(session),
                             );
                           },
                         ),
@@ -435,45 +591,80 @@ class _NavItem extends StatelessWidget {
   }
 }
 
-class _SessionLink extends StatelessWidget {
+class _SessionLink extends StatefulWidget {
   const _SessionLink({
     required this.session,
     required this.selected,
     required this.onTap,
+    required this.onRename,
+    required this.onDelete,
   });
   final ChatSessionSummary session;
   final bool selected;
   final VoidCallback onTap;
+  final VoidCallback onRename;
+  final VoidCallback onDelete;
+
+  @override
+  State<_SessionLink> createState() => _SessionLinkState();
+}
+
+class _SessionLinkState extends State<_SessionLink> {
+  bool _hoveringAction = false;
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? AppColors.surfaceContainer : Colors.transparent,
+      color: widget.selected ? AppColors.surfaceContainer : Colors.transparent,
       borderRadius: BorderRadius.circular(7),
       child: InkWell(
-        onTap: onTap,
+        onTap: widget.onTap,
         borderRadius: BorderRadius.circular(7),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
           child: Row(
             children: [
               Expanded(
-                child: Text(
-                  session.visibleTitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onDoubleTap: widget.onRename,
+                  child: Text(
+                    widget.session.visibleTitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: widget.selected
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                    ),
                   ),
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                '${session.messageCount}',
-                style: const TextStyle(
-                  color: AppColors.textMuted,
-                  fontSize: 10,
+              MouseRegion(
+                onEnter: (_) => setState(() => _hoveringAction = true),
+                onExit: (_) => setState(() => _hoveringAction = false),
+                child: SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: _hoveringAction
+                      ? IconButton(
+                          tooltip: '删除会话',
+                          padding: EdgeInsets.zero,
+                          visualDensity: VisualDensity.compact,
+                          onPressed: widget.onDelete,
+                          icon: const Icon(Icons.delete_outline, size: 17),
+                        )
+                      : Center(
+                          child: Text(
+                            '${widget.session.messageCount}',
+                            style: const TextStyle(
+                              color: AppColors.textMuted,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
                 ),
               ),
             ],

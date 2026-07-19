@@ -7,10 +7,14 @@ import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 
 class HistoryPage extends StatefulWidget {
-  const HistoryPage({super.key, MemoryService? apiService})
-    : _apiService = apiService;
+  const HistoryPage({
+    super.key,
+    MemoryService? apiService,
+    this.onSessionOpened,
+  }) : _apiService = apiService;
 
   final MemoryService? _apiService;
+  final VoidCallback? onSessionOpened;
 
   @override
   State<HistoryPage> createState() => _HistoryPageState();
@@ -138,7 +142,12 @@ class _HistoryPageState extends State<HistoryPage> {
     final history = await _apiService.getHistory(sessionId);
     if (!mounted) return;
     await context.read<ChatProvider>().restoreSession(sessionId, history);
-    if (mounted) Navigator.of(context).pop();
+    if (!mounted) return;
+    if (widget.onSessionOpened != null) {
+      widget.onSessionOpened!();
+    } else {
+      Navigator.of(context).pop();
+    }
   }
 
   Future<void> _renameSession(ChatSessionSummary session) async {
