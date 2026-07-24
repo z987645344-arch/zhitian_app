@@ -15,12 +15,42 @@ import 'package:zhitian_app/models/user_file.dart';
 import 'package:zhitian_app/pages/chat_page.dart';
 import 'package:zhitian_app/pages/files_page.dart';
 import 'package:zhitian_app/pages/history_page.dart';
+import 'package:zhitian_app/pages/register_page.dart';
 import 'package:zhitian_app/providers/chat_provider.dart';
 import 'package:zhitian_app/services/api_service.dart';
 import 'package:zhitian_app/widgets/message_bubble.dart';
 
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
+
+  testWidgets('customer registration validates email and matching passwords', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: RegisterPage()));
+    await tester.enterText(
+      find.byKey(const Key('register_email')),
+      'invalid-email',
+    );
+    await tester.enterText(
+      find.byKey(const Key('register_password')),
+      'Password123!',
+    );
+    await tester.enterText(
+      find.byKey(const Key('register_confirm_password')),
+      'Different123!',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, '注册'));
+    await tester.pump();
+    expect(find.text('请输入有效的邮箱地址'), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const Key('register_email')),
+      'user@example.test',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, '注册'));
+    await tester.pump();
+    expect(find.text('两次输入的密码不一致'), findsOneWidget);
+  });
 
   testWidgets('compact navigation rail does not overflow at desktop width', (
     WidgetTester tester,
@@ -30,7 +60,9 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(_buildApp(ChatProvider(apiService: _FakeStreamingService())));
+    await tester.pumpWidget(
+      _buildApp(ChatProvider(apiService: _FakeStreamingService())),
+    );
     await tester.pumpAndSettle();
 
     final exception = tester.takeException();

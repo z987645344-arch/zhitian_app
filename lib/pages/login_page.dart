@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import 'chat_page.dart';
+import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -119,8 +120,8 @@ class _LoginPageState extends State<LoginPage> {
                     textInputAction: TextInputAction.next,
                     style: const TextStyle(fontSize: 15),
                     decoration: _inputDecoration(
-                      label: '用户名',
-                      icon: Icons.person_outline,
+                      label: '邮箱',
+                      icon: Icons.email_outlined,
                     ),
                     onSubmitted: (_) => FocusScope.of(context).nextFocus(),
                   ),
@@ -177,6 +178,26 @@ class _LoginPageState extends State<LoginPage> {
                           : const Icon(Icons.login),
                       label: const Text('登录'),
                     ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: _isLoading
+                        ? null
+                        : () async {
+                            final registered = await Navigator.of(context)
+                                .push<bool>(
+                                  MaterialPageRoute<bool>(
+                                    builder: (_) => const RegisterPage(),
+                                  ),
+                                );
+                            if (!context.mounted) return;
+                            if (registered == true) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('注册成功，请登录')),
+                              );
+                            }
+                          },
+                    child: const Text('没有账号？注册'),
                   ),
                 ],
               ),

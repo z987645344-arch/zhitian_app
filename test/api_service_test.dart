@@ -10,6 +10,21 @@ import 'package:zhitian_app/services/api_service.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  test('customer login request always includes customer role', () async {
+    final client = _AuthClient();
+    SharedPreferences.setMockInitialValues({
+      ApiService.backendUrlKey: 'http://localhost:8000',
+    });
+    await ApiService(
+      clientFactory: () => client,
+    ).login(username: 'customer@example.test', password: 'Password123!');
+    expect(client.body, {
+      'username': 'customer@example.test',
+      'password': 'Password123!',
+      'role': 'customer',
+    });
+  });
+
   for (final mode in ['fast', 'expert']) {
     test('chat stream serializes $mode mode in the request body', () async {
       final client = _CapturingClient();
@@ -232,6 +247,23 @@ void main() {
       ]);
     },
   );
+}
+
+class _AuthClient extends http.BaseClient {
+  Map<String, dynamic> body = {};
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    body =
+        jsonDecode(await request.finalize().bytesToString())
+            as Map<String, dynamic>;
+    return http.StreamedResponse(
+      Stream.value(
+        utf8.encode(jsonEncode({'token': 'token', 'role': 'customer'})),
+      ),
+      200,
+    );
+  }
 }
 
 class _CapturingClient extends http.BaseClient {

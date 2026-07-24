@@ -99,13 +99,11 @@ class ApiService
   }) async {
     final backendUrl = await getBackendUrl();
     final uri = Uri.parse('$backendUrl/auth/login');
-    final response = await http
-        .post(
-          uri,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'username': username, 'password': password}),
-        )
-        .timeout(const Duration(seconds: 12));
+    final response = await _postJson(uri, {
+      'username': username,
+      'password': password,
+      'role': 'customer',
+    });
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(_loginErrorMessage(response));
@@ -127,12 +125,42 @@ class ApiService
     await prefs.setString(usernameKey, username);
   }
 
+  Future<void> registerCustomer({
+    required String email,
+    required String password,
+  }) async {
+    final backendUrl = await getBackendUrl();
+    final response = await _postJson(Uri.parse('$backendUrl/auth/register'), {
+      'username': email,
+      'password': password,
+      'role': 'customer',
+    });
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(_responseDetail(response, '注册失败，请稍后重试'));
+    }
+  }
+
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(authTokenKey);
     await prefs.remove(userRoleKey);
     await prefs.remove(usernameKey);
     await prefs.remove(chatSessionIdKey);
+  }
+
+  Future<http.Response> _postJson(Uri uri, Map<String, dynamic> body) async {
+    final client = _clientFactory();
+    try {
+      return await client
+          .post(
+            uri,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 12));
+    } finally {
+      client.close();
+    }
   }
 
   Future<String> checkHealth() async {
@@ -616,6 +644,10 @@ class ApiService
   }
 
   String _loginErrorMessage(http.Response response) {
+    return _responseDetail(response, '登录失败：HTTP ${response.statusCode}');
+  }
+
+  String _responseDetail(http.Response response, String fallback) {
     try {
       final body = jsonDecode(utf8.decode(response.bodyBytes));
       if (body is Map<String, dynamic>) {
@@ -625,7 +657,7 @@ class ApiService
     } catch (_) {
       // Ignore malformed error body and fall through to HTTP code.
     }
-    return '登录失败：HTTP ${response.statusCode}';
+    return fallback;
   }
 
   String _downloadFilename(String? contentDisposition, String fallback) {
