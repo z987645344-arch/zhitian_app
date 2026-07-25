@@ -23,9 +23,19 @@ import 'package:zhitian_app/widgets/message_bubble.dart';
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
+  /// 认证页是桌面端表单，默认800x600测试窗口装不下完整表单会导致按钮落在视口外，
+  /// 按真实Windows桌面尺寸测试才与实际使用一致。
+  void useDesktopViewport(WidgetTester tester) {
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+  }
+
   testWidgets('customer registration validates email and matching passwords', (
     WidgetTester tester,
   ) async {
+    useDesktopViewport(tester);
     await tester.pumpWidget(const MaterialApp(home: RegisterPage()));
     await tester.enterText(
       find.byKey(const Key('register_email')),
@@ -50,6 +60,68 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, '注册'));
     await tester.pump();
     expect(find.text('两次输入的密码不一致'), findsOneWidget);
+  });
+
+  testWidgets('customer registration requires a verification code', (
+    WidgetTester tester,
+  ) async {
+    useDesktopViewport(tester);
+    await tester.pumpWidget(const MaterialApp(home: RegisterPage()));
+    await tester.enterText(
+      find.byKey(const Key('register_email')),
+      'user@example.test',
+    );
+    await tester.enterText(
+      find.byKey(const Key('register_password')),
+      'Password123!',
+    );
+    await tester.enterText(
+      find.byKey(const Key('register_confirm_password')),
+      'Password123!',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, '注册'));
+    await tester.pump();
+    expect(find.text('请输入邮箱验证码'), findsOneWidget);
+  });
+
+  testWidgets('sending the register code starts a 180 second cooldown', (
+    WidgetTester tester,
+  ) async {
+    useDesktopViewport(tester);
+    final service = _FakeRegisterService();
+    await tester.pumpWidget(
+      MaterialApp(home: RegisterPage(apiService: service)),
+    );
+    // 邮箱无效时不发起请求
+    await tester.enterText(
+      find.byKey(const Key('register_email')),
+      'invalid-email',
+    );
+    await tester.tap(find.byKey(const Key('register_send_code')));
+    await tester.pump();
+    expect(service.sentEmails, isEmpty);
+    expect(find.text('请输入有效的邮箱地址'), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const Key('register_email')),
+      'user@example.test',
+    );
+    await tester.tap(find.byKey(const Key('register_send_code')));
+    await tester.pump();
+    expect(service.sentEmails, ['user@example.test']);
+    expect(find.text('验证码已发送，请查收邮箱'), findsOneWidget);
+    // 后端customer_register冷却为180秒，按钮进入倒计时且不可再次点击
+    expect(find.text('180s'), findsOneWidget);
+    final button = tester.widget<OutlinedButton>(
+      find.byKey(const Key('register_send_code')),
+    );
+    expect(button.onPressed, isNull);
+
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('179s'), findsOneWidget);
+
+    // 卸载页面触发dispose，取消倒计时Timer
+    await tester.pumpWidget(const SizedBox());
   });
 
   testWidgets('compact navigation rail does not overflow at desktop width', (
@@ -430,6 +502,15 @@ Widget _buildApp(ChatProvider provider) {
     value: provider,
     child: const MaterialApp(home: ChatPage()),
   );
+}
+
+class _FakeRegisterService extends ApiService {
+  final List<String> sentEmails = [];
+
+  @override
+  Future<void> sendCustomerRegisterCode({required String email}) async {
+    sentEmails.add(email);
+  }
 }
 
 class _FakeStreamingService implements ChatStreamingService {

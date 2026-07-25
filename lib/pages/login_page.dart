@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/auth_shell.dart';
 import 'chat_page.dart';
 import 'register_page.dart';
 
@@ -64,174 +65,109 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 440),
-            child: Container(
-              margin: const EdgeInsets.all(32),
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: ListView(
-                shrinkWrap: true,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 58,
-                      height: 58,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryContainer,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: const Icon(
-                        Icons.auto_awesome_outlined,
-                        color: AppColors.primary,
-                        size: 30,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  const Text(
-                    '知天',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: AppColors.text,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    '安静、可靠的企业智能工作台',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: AppColors.textMuted, fontSize: 13),
-                  ),
-                  const SizedBox(height: 28),
-                  TextField(
-                    controller: _usernameController,
-                    textInputAction: TextInputAction.next,
-                    style: const TextStyle(fontSize: 15),
-                    decoration: _inputDecoration(
-                      label: '邮箱',
-                      icon: Icons.email_outlined,
-                    ),
-                    onSubmitted: (_) => FocusScope.of(context).nextFocus(),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: _obscurePassword,
-                    textInputAction: TextInputAction.done,
-                    style: const TextStyle(fontSize: 15),
-                    decoration: _inputDecoration(
-                      label: '密码',
-                      icon: Icons.lock_outline,
-                      suffixIcon: IconButton(
-                        tooltip: _obscurePassword ? '显示密码' : '隐藏密码',
-                        onPressed: () {
-                          setState(() => _obscurePassword = !_obscurePassword);
-                        },
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
-                        ),
-                      ),
-                    ),
-                    onSubmitted: (_) => _login(),
-                  ),
-                  const SizedBox(height: 14),
-                  if (_errorText != null)
-                    Text(
-                      _errorText!,
-                      style: const TextStyle(color: Color(0xFFD32F2F)),
-                    ),
-                  const SizedBox(height: 18),
-                  SizedBox(
-                    height: 48,
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      onPressed: _isLoading ? null : _login,
-                      icon: _isLoading
-                          ? const SizedBox.square(
-                              dimension: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(Icons.login),
-                      label: const Text('登录'),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: _isLoading
-                        ? null
-                        : () async {
-                            final registered = await Navigator.of(context)
-                                .push<bool>(
-                                  MaterialPageRoute<bool>(
-                                    builder: (_) => const RegisterPage(),
-                                  ),
-                                );
-                            if (!context.mounted) return;
-                            if (registered == true) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('注册成功，请登录')),
-                              );
-                            }
-                          },
-                    child: const Text('没有账号？注册'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+  Future<void> _openRegister() async {
+    final registered = await Navigator.of(
+      context,
+    ).push<bool>(MaterialPageRoute<bool>(builder: (_) => const RegisterPage()));
+    if (!mounted) return;
+    if (registered == true) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('注册成功，请登录')));
+    }
   }
 
-  InputDecoration _inputDecoration({
-    required String label,
-    required IconData icon,
-    Widget? suffixIcon,
-  }) {
-    return InputDecoration(
-      labelText: label,
-      labelStyle: const TextStyle(color: AppColors.textMuted),
-      prefixIcon: Icon(icon, color: AppColors.textMuted),
-      suffixIcon: suffixIcon,
-      filled: true,
-      fillColor: AppColors.surfaceLow,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: AppColors.border),
+  @override
+  Widget build(BuildContext context) {
+    return AuthShell(
+      title: '登录',
+      subtitle: '使用企业邮箱账号进入工作台。',
+      footer: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text(
+            '还没有个人账号？',
+            style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+          ),
+          TextButton(
+            onPressed: _isLoading ? null : _openRegister,
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              minimumSize: const Size(0, 32),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              textStyle: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            child: const Text('立即注册'),
+          ),
+        ],
       ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: AppColors.border),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-      ),
+      children: [
+        AuthField(
+          label: '邮箱',
+          child: TextField(
+            key: const Key('login_email'),
+            controller: _usernameController,
+            textInputAction: TextInputAction.next,
+            style: const TextStyle(fontSize: 14),
+            decoration: authInputDecoration(
+              hintText: 'name@company.com',
+              icon: Icons.mail_outline,
+            ),
+            onSubmitted: (_) => FocusScope.of(context).nextFocus(),
+          ),
+        ),
+        const SizedBox(height: 16),
+        AuthField(
+          label: '密码',
+          child: TextField(
+            key: const Key('login_password'),
+            controller: _passwordController,
+            obscureText: _obscurePassword,
+            textInputAction: TextInputAction.done,
+            style: const TextStyle(fontSize: 14),
+            decoration: authInputDecoration(
+              hintText: '请输入密码',
+              icon: Icons.lock_outline,
+              suffixIcon: IconButton(
+                tooltip: _obscurePassword ? '显示密码' : '隐藏密码',
+                onPressed: () {
+                  setState(() => _obscurePassword = !_obscurePassword);
+                },
+                iconSize: 18,
+                icon: Icon(
+                  _obscurePassword
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                ),
+              ),
+            ),
+            onSubmitted: (_) => _login(),
+          ),
+        ),
+        if (_errorText != null) ...[
+          const SizedBox(height: 16),
+          AuthMessage(text: _errorText!, isError: true),
+        ],
+        const SizedBox(height: 24),
+        SizedBox(
+          height: 44,
+          child: FilledButton(
+            onPressed: _isLoading ? null : _login,
+            child: _isLoading
+                ? const SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Text('登录'),
+          ),
+        ),
+      ],
     );
   }
 

@@ -125,15 +125,29 @@ class ApiService
     await prefs.setString(usernameKey, username);
   }
 
+  /// 发送customer自助注册验证码；customer场景不需要企业密码。
+  Future<void> sendCustomerRegisterCode({required String email}) async {
+    final backendUrl = await getBackendUrl();
+    final response = await _postJson(
+      Uri.parse('$backendUrl/auth/send-verification-code'),
+      {'email': email, 'purpose': 'customer_register'},
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(_responseDetail(response, '验证码发送失败，请稍后重试'));
+    }
+  }
+
   Future<void> registerCustomer({
     required String email,
     required String password,
+    required String verificationCode,
   }) async {
     final backendUrl = await getBackendUrl();
     final response = await _postJson(Uri.parse('$backendUrl/auth/register'), {
       'username': email,
       'password': password,
       'role': 'customer',
+      'verification_code': verificationCode,
     });
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(_responseDetail(response, '注册失败，请稍后重试'));
