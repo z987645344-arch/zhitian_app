@@ -100,6 +100,15 @@ class _SettingsPageState extends State<SettingsPage> {
                     _SettingsCard(
                       title: '后端连接',
                       children: [
+                        const Text(
+                          '仅连接你信任的企业服务地址。远程服务建议使用 HTTPS，保存前先测试连接。',
+                          style: TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 12,
+                            height: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
                         TextField(
                           controller: _backendController,
                           keyboardType: TextInputType.url,
@@ -164,7 +173,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       children: [
                         TextButton.icon(
                           style: TextButton.styleFrom(
-                            foregroundColor: const Color(0xFFD32F2F),
+                            foregroundColor: AppColors.text,
                             alignment: Alignment.centerLeft,
                           ),
                           onPressed: _logout,
@@ -188,8 +197,8 @@ class _SettingsPageState extends State<SettingsPage> {
     return InputDecoration(
       labelText: label,
       hintText: hint,
-      labelStyle: const TextStyle(color: Color(0xFF666666)),
-      prefixIcon: Icon(icon, color: const Color(0xFF666666)),
+      labelStyle: const TextStyle(color: AppColors.textMuted),
+      prefixIcon: Icon(icon, color: AppColors.textMuted),
       filled: true,
       fillColor: AppColors.surface,
       border: OutlineInputBorder(
@@ -210,8 +219,8 @@ class _SettingsPageState extends State<SettingsPage> {
   Color _statusColor() {
     return switch (_healthStatus) {
       'ok' => AppColors.success,
-      'degraded' => const Color(0xFFF57C00),
-      _ => const Color(0xFFD32F2F),
+      'degraded' => AppColors.textMuted,
+      _ => AppColors.error,
     };
   }
 
@@ -235,7 +244,7 @@ class _SettingsCard extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: AppColors.border),
       ),
       child: Padding(
@@ -246,7 +255,7 @@ class _SettingsCard extends StatelessWidget {
             Text(
               title,
               style: const TextStyle(
-                color: Color(0xFF1A1A1A),
+                color: AppColors.text,
                 fontSize: 17,
                 fontWeight: FontWeight.w600,
               ),

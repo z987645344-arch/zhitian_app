@@ -61,12 +61,12 @@ class ChatComposer extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surface,
           border: Border.all(color: AppColors.border),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(10),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x0A000000),
+              color: Color(0x0D252A2E),
               blurRadius: 20,
-              offset: Offset(0, 6),
+              offset: Offset(0, 8),
             ),
           ],
         ),
@@ -134,7 +134,7 @@ class ChatComposer extends StatelessWidget {
                             style: const TextStyle(fontSize: 15),
                             textInputAction: TextInputAction.send,
                             decoration: const InputDecoration(
-                              hintText: '向知天提问，或添加文件…',
+                              hintText: '输入问题；可添加文件作为本轮参考',
                               hintStyle: TextStyle(color: AppColors.textMuted),
                               border: InputBorder.none,
                               contentPadding: EdgeInsets.symmetric(

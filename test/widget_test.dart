@@ -196,7 +196,7 @@ void main() {
     expect(provider.sessionId, isNot(oldSessionId));
     expect(provider.isThinking, isFalse);
     expect(provider.isSending, isFalse);
-    expect(find.text('开始对话'), findsOneWidget);
+    expect(find.text('今天需要了解什么？'), findsOneWidget);
   });
 
   testWidgets('chat mode defaults to fast and switches to expert', (
@@ -241,9 +241,9 @@ void main() {
       expect(find.text('PDF拆分'), findsOneWidget);
       expect(Navigator.of(tester.element(find.text('开始转换'))).canPop(), isFalse);
 
-      await tester.tap(find.text('对话'));
+    await tester.tap(find.text('知识问答'));
       await tester.pumpAndSettle();
-      expect(find.text('开始对话'), findsOneWidget);
+      expect(find.text('今天需要了解什么？'), findsOneWidget);
     },
   );
 

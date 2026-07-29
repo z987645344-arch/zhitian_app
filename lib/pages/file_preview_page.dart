@@ -116,7 +116,7 @@ class _FilePreviewPageState extends State<FilePreviewPage> {
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
-                    color: const Color(0xFFFFF4CE),
+                    color: AppColors.surfaceContainer,
                     child: const Text(
                       '内容较长，已截断显示',
                       textAlign: TextAlign.center,

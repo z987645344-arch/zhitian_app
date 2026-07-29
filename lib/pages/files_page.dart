@@ -143,7 +143,10 @@ class _FilesPageState extends State<FilesPage> {
                           padding: const EdgeInsets.all(16),
                           child: Text(
                             _error!,
-                            style: const TextStyle(color: Color(0xFFB3261E)),
+                            style: const TextStyle(
+                              color: AppColors.error,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       if (_files.isEmpty)

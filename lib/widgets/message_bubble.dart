@@ -48,12 +48,21 @@ class _MessageBubbleState extends State<MessageBubble> {
                 decoration: BoxDecoration(
                   color: bubbleColor,
                   borderRadius: BorderRadius.only(
-                    topLeft: const Radius.circular(16),
-                    topRight: const Radius.circular(16),
-                    bottomLeft: Radius.circular(isUser ? 16 : 6),
-                    bottomRight: Radius.circular(isUser ? 6 : 16),
+                    topLeft: const Radius.circular(9),
+                    topRight: const Radius.circular(9),
+                    bottomLeft: Radius.circular(isUser ? 9 : 3),
+                    bottomRight: Radius.circular(isUser ? 3 : 9),
                   ),
                   border: isUser ? null : Border.all(color: AppColors.border),
+                  boxShadow: isUser
+                      ? null
+                      : const [
+                          BoxShadow(
+                            color: Color(0x08252A2E),
+                            blurRadius: 10,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,7 +182,7 @@ class _CitationPanel extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: AppColors.surfaceLow,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(8),
           border: Border.all(color: AppColors.border),
         ),
         child: Column(

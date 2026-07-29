@@ -27,13 +27,13 @@ void main() {
     await pumpAt(tester, const LoginPage(), desktop);
     expect(tester.takeException(), isNull);
     // 宽窗口展示左侧品牌栏
-    expect(find.text('安静、可靠的企业智能工作台'), findsOneWidget);
-    expect(find.text('本地优先部署 · 数据不出企业边界'), findsOneWidget);
+    expect(find.text('清晰、克制的企业智能工作台'), findsOneWidget);
+    expect(find.text('使用前请确认内容权限，并核对重要结论'), findsOneWidget);
 
     await pumpAt(tester, const LoginPage(), narrow);
     expect(tester.takeException(), isNull);
     // 窄窗口收起品牌栏，只保留表单卡片
-    expect(find.text('本地优先部署 · 数据不出企业边界'), findsNothing);
+    expect(find.text('使用前请确认内容权限，并核对重要结论'), findsNothing);
     expect(find.byKey(const Key('login_email')), findsOneWidget);
     expect(find.byKey(const Key('login_password')), findsOneWidget);
   });

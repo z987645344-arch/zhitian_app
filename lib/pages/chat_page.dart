@@ -185,7 +185,6 @@ class _ChatPageState extends State<ChatPage> {
           body: LayoutBuilder(
             builder: (context, constraints) {
               final compactRail = constraints.maxWidth < 760;
-              final showInspector = constraints.maxWidth >= 1180;
               return Row(
                 children: [
                   _LeftPanel(
@@ -214,7 +213,7 @@ class _ChatPageState extends State<ChatPage> {
                               children: [
                                 _WorkspaceHeader(
                                   provider: provider,
-                                  showModeSelector: !showInspector,
+                                  showModeSelector: true,
                                 ),
                                 Expanded(
                                   child: Center(
@@ -278,7 +277,7 @@ class _ChatPageState extends State<ChatPage> {
                                           ),
                                           const SizedBox(height: 8),
                                           const Text(
-                                            'AI 生成内容仅供参考，请结合实际情况判断',
+                                            '请核对引用与关键事实后再使用回答内容',
                                             style: TextStyle(
                                               color: AppColors.textMuted,
                                               fontSize: 10,
@@ -303,17 +302,6 @@ class _ChatPageState extends State<ChatPage> {
                             _WorkspaceSection.chat => const SizedBox.shrink(),
                           },
                   ),
-                  if (showInspector && _section == _WorkspaceSection.chat)
-                    _RightPanel(
-                      provider: provider,
-                      openHistory: () =>
-                          _showSection(_WorkspaceSection.history),
-                      openFiles: () => _showSection(_WorkspaceSection.files),
-                      openToolbox: () =>
-                          _showSection(_WorkspaceSection.toolbox),
-                      openSettings: () =>
-                          _showSection(_WorkspaceSection.settings),
-                    ),
                 ],
               );
             },
@@ -362,16 +350,16 @@ class _LeftPanel extends StatelessWidget {
         ? 8
         : provider.sessions.length;
     return Container(
-      width: compact ? 72 : 260,
+      width: compact ? 68 : 232,
       decoration: const BoxDecoration(
-        color: AppColors.surfaceLow,
+        color: AppColors.surface,
         border: Border(right: BorderSide(color: AppColors.border)),
       ),
       child: SafeArea(
         child: Padding(
           padding: EdgeInsets.fromLTRB(
             compact ? 8 : 16,
-            18,
+            16,
             compact ? 8 : 16,
             14,
           ),
@@ -379,7 +367,7 @@ class _LeftPanel extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _Brand(compact: compact, onNewChat: onNewChat),
-              const SizedBox(height: 22),
+              const SizedBox(height: 20),
               if (compact)
                 IconButton.filled(
                   tooltip: '新建对话',
@@ -397,7 +385,7 @@ class _LeftPanel extends StatelessWidget {
                 compact: compact,
                 selected: section == _WorkspaceSection.chat,
                 icon: Icons.chat_bubble_outline,
-                label: '对话',
+                label: '知识问答',
                 onTap: openChat,
               ),
               _NavItem(
@@ -497,7 +485,7 @@ class _Brand extends StatelessWidget {
               height: 38,
               decoration: BoxDecoration(
                 color: AppColors.primary,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(9),
               ),
               child: const Icon(
                 Icons.auto_awesome,
@@ -515,7 +503,7 @@ class _Brand extends StatelessWidget {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                   ),
                   Text(
-                    '智能工作台',
+                    '企业知识助手',
                     style: TextStyle(color: AppColors.textMuted, fontSize: 10),
                   ),
                 ],
@@ -554,10 +542,10 @@ class _NavItem extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 4),
       child: Material(
         color: selected ? AppColors.primaryContainer : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(7),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(7),
           child: SizedBox(
             height: 42,
             child: Row(
@@ -565,8 +553,16 @@ class _NavItem extends StatelessWidget {
                   ? MainAxisAlignment.center
                   : MainAxisAlignment.start,
               children: [
+                Container(
+                  width: 3,
+                  height: selected ? 24 : 0,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
                 SizedBox(
-                  width: compact ? 42 : 44,
+                  width: compact ? 39 : 41,
                   child: Icon(
                     icon,
                     size: 20,
@@ -579,7 +575,7 @@ class _NavItem extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                      color: selected ? AppColors.text : AppColors.textMuted,
+                      color: selected ? AppColors.primary : AppColors.textMuted,
                     ),
                   ),
               ],
@@ -699,7 +695,7 @@ class _AccountTile extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(8),
           child: Padding(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(compact ? 7 : 8),
             child: Row(
               mainAxisAlignment: compact
                   ? MainAxisAlignment.center
@@ -773,9 +769,9 @@ class _WorkspaceHeader extends StatelessWidget {
     }
     return Container(
       height: 68,
-      padding: const EdgeInsets.symmetric(horizontal: 28),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: const BoxDecoration(
-        color: AppColors.background,
+        color: AppColors.surface,
         border: Border(bottom: BorderSide(color: AppColors.border)),
       ),
       child: Row(
@@ -824,10 +820,10 @@ class _WorkspaceHeader extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
               color: provider.isSending
-                  ? AppColors.primaryContainer
+                  ? AppColors.surfaceContainer
                   : AppColors.surfaceLow,
               border: Border.all(color: AppColors.border),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(7),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -859,237 +855,6 @@ class _WorkspaceHeader extends StatelessWidget {
   }
 }
 
-class _RightPanel extends StatelessWidget {
-  const _RightPanel({
-    required this.provider,
-    required this.openHistory,
-    required this.openFiles,
-    required this.openToolbox,
-    required this.openSettings,
-  });
-  final ChatProvider provider;
-  final VoidCallback openHistory;
-  final VoidCallback openFiles;
-  final VoidCallback openToolbox;
-  final VoidCallback openSettings;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 310,
-      decoration: const BoxDecoration(
-        color: AppColors.surfaceLow,
-        border: Border(left: BorderSide(color: AppColors.border)),
-      ),
-      child: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(18, 20, 18, 18),
-          children: [
-            const _PanelHeading(title: '工作模式', icon: Icons.tune),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: SegmentedButton<String>(
-                segments: const [
-                  ButtonSegment(value: 'fast', label: Text('快速')),
-                  ButtonSegment(value: 'expert', label: Text('专家')),
-                ],
-                selected: {provider.mode},
-                onSelectionChanged: provider.isSending
-                    ? null
-                    : (selection) => provider.setMode(selection.first),
-                showSelectedIcon: false,
-              ),
-            ),
-            const SizedBox(height: 12),
-            _ModeSummary(mode: provider.mode),
-            const SizedBox(height: 26),
-            const _PanelHeading(title: '可用能力', icon: Icons.widgets_outlined),
-            const SizedBox(height: 10),
-            const _UtilityCard(
-              icon: Icons.attach_file,
-              title: '附件阅读',
-              subtitle: '在输入框上传文档并结合内容提问',
-            ),
-            _UtilityCard(
-              icon: Icons.build_outlined,
-              title: '格式与 PDF 工具',
-              subtitle: '转换、合并和拆分本地文档',
-              onTap: openToolbox,
-            ),
-            _UtilityCard(
-              icon: Icons.folder_outlined,
-              title: '我的文件',
-              subtitle: '查看、预览、下载和管理产物',
-              onTap: openFiles,
-            ),
-            _UtilityCard(
-              icon: Icons.history,
-              title: '历史记录',
-              subtitle: '${provider.sessions.length} 个可用会话',
-              onTap: openHistory,
-            ),
-            const SizedBox(height: 20),
-            const _PanelHeading(title: '知识与上下文', icon: Icons.storage_outlined),
-            const SizedBox(height: 10),
-            const _InfoRow(label: '企业知识库', value: '已连接'),
-            const _InfoRow(label: '长期记忆', value: '自动检索'),
-            const _InfoRow(label: '附件上下文', value: '按本轮注入'),
-            const SizedBox(height: 20),
-            OutlinedButton.icon(
-              onPressed: openSettings,
-              icon: const Icon(Icons.settings_outlined, size: 18),
-              label: const Text('工作台设置'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PanelHeading extends StatelessWidget {
-  const _PanelHeading({required this.title, required this.icon});
-  final String title;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 17, color: AppColors.primary),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
-        ),
-      ],
-    );
-  }
-}
-
-class _ModeSummary extends StatelessWidget {
-  const _ModeSummary({required this.mode});
-  final String mode;
-
-  @override
-  Widget build(BuildContext context) {
-    final expert = mode == 'expert';
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border.all(color: AppColors.border),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        expert ? '完整意图分类、联网搜索、复杂任务、文件生成与转换。' : '上下文问答、知识库检索与附件阅读，单次最多 2 次模型调用。',
-        style: const TextStyle(
-          fontSize: 11,
-          color: AppColors.textMuted,
-          height: 1.55,
-        ),
-      ),
-    );
-  }
-}
-
-class _UtilityCard extends StatelessWidget {
-  const _UtilityCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    this.onTap,
-  });
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 7),
-      child: Material(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(8),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            padding: const EdgeInsets.all(11),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.border),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                Icon(icon, size: 20, color: AppColors.primary),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: AppColors.textMuted,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (onTap != null)
-                  const Icon(
-                    Icons.chevron_right,
-                    size: 18,
-                    color: AppColors.textMuted,
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.label, required this.value});
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 7),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
-            ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _EmptyState extends StatelessWidget {
   const _EmptyState();
 
@@ -1100,26 +865,26 @@ class _EmptyState extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 54,
-            height: 54,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
-              color: AppColors.primaryContainer,
-              borderRadius: BorderRadius.circular(14),
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(9),
             ),
             child: const Icon(
               Icons.auto_awesome_outlined,
-              color: AppColors.primary,
-              size: 28,
+              color: Colors.white,
+              size: 24,
             ),
           ),
           const SizedBox(height: 18),
           const Text(
-            '开始对话',
+            '今天需要了解什么？',
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           const Text(
-            '对话、检索、阅读附件或生成可交付文件',
+            '可以检索企业知识、阅读本轮附件，或处理本地文件',
             style: TextStyle(fontSize: 13, color: AppColors.textMuted),
           ),
         ],

@@ -80,8 +80,8 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return AuthShell(
-      title: '登录',
-      subtitle: '使用企业邮箱账号进入工作台。',
+      title: '安全登录',
+      subtitle: '使用已获准的企业邮箱账号进入工作台。',
       footer: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

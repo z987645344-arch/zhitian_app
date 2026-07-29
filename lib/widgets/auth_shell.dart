@@ -32,7 +32,7 @@ class AuthShell extends StatelessWidget {
   /// 卡片底部的次级操作区（注册入口 / 返回登录）。
   final Widget? footer;
 
-  static const double _brandPanelWidth = 420;
+  static const double _brandPanelWidth = 400;
   static const double _formMaxWidth = 400;
   static const double _wideBreakpoint = 960;
 
@@ -75,11 +75,18 @@ class AuthShell extends StatelessWidget {
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: _formMaxWidth),
       child: Container(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(30),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(9),
           border: Border.all(color: AppColors.border),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x0F252A2E),
+              blurRadius: 28,
+              offset: Offset(0, 12),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -90,7 +97,7 @@ class AuthShell extends StatelessWidget {
             if (compact) ...[
               const Align(
                 alignment: Alignment.centerLeft,
-                child: _BrandMark(size: 44, radius: 12, iconSize: 24),
+                child: _BrandMark(size: 44, radius: 5, iconSize: 24),
               ),
               const SizedBox(height: 16),
             ],
@@ -144,16 +151,16 @@ class AuthShell extends StatelessWidget {
   }
 }
 
-/// 左侧品牌栏：用 tonal layering 与背景区分，不使用阴影。
+/// 左侧品牌栏：低饱和蓝灰底，集中说明产品边界与安全预期。
 class _BrandPanel extends StatelessWidget {
   const _BrandPanel({required this.width});
 
   final double width;
 
   static const List<(IconData, String, String)> _highlights = [
-    (Icons.verified_outlined, '可验证回答', '企业知识库检索结果附带引用来源'),
-    (Icons.bolt_outlined, '快速 / 专家双模式', '日常问答低延迟，复杂任务可联网分解'),
-    (Icons.folder_open_outlined, '统一文件工作台', '附件阅读、格式转换与个人文件库'),
+    (Icons.article_outlined, '企业知识可追溯', '检索结果展示引用来源，关键结论可回查'),
+    (Icons.lock_outline, '权限按账号隔离', '账号、组织与个人文件遵循各自访问范围'),
+    (Icons.attach_file, '附件按会话使用', '上传前请先确认文件可在企业系统内处理'),
   ];
 
   @override
@@ -163,13 +170,13 @@ class _BrandPanel extends StatelessWidget {
       height: double.infinity,
       padding: const EdgeInsets.all(48),
       decoration: const BoxDecoration(
-        color: AppColors.surfaceLow,
+        color: AppColors.primaryContainer,
         border: Border(right: BorderSide(color: AppColors.border)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _BrandMark(size: 52, radius: 14, iconSize: 28),
+          const _BrandMark(size: 52, radius: 9, iconSize: 28),
           const SizedBox(height: 24),
           const Text(
             '知天',
@@ -183,7 +190,7 @@ class _BrandPanel extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            '安静、可靠的企业智能工作台',
+            '清晰、克制的企业智能工作台',
             style: TextStyle(
               color: AppColors.textMuted,
               fontSize: 14,
@@ -199,7 +206,7 @@ class _BrandPanel extends StatelessWidget {
           ],
           const Spacer(),
           const Text(
-            '本地优先部署 · 数据不出企业边界',
+            '使用前请确认内容权限，并核对重要结论',
             style: TextStyle(
               color: AppColors.textMuted,
               fontSize: 12,
@@ -233,7 +240,7 @@ class _HighlightRow extends StatelessWidget {
           height: 32,
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(7),
             border: Border.all(color: AppColors.border),
           ),
           child: Icon(icon, size: 17, color: AppColors.primary),
@@ -286,12 +293,12 @@ class _BrandMark extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: AppColors.primaryContainer,
+        color: AppColors.primary,
         borderRadius: BorderRadius.circular(radius),
       ),
       child: Icon(
         Icons.auto_awesome_outlined,
-        color: AppColors.primary,
+        color: Colors.white,
         size: iconSize,
       ),
     );
