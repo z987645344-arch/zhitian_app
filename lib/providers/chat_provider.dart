@@ -10,11 +10,15 @@ import '../models/pending_attachment.dart';
 import '../services/api_service.dart';
 
 class ChatProvider extends ChangeNotifier {
-  ChatProvider({ChatStreamingService? apiService, String? initialSessionId})
-    : _apiService = apiService ?? ApiService(),
-      _sessionId = initialSessionId?.trim().isNotEmpty == true
-          ? initialSessionId!.trim()
-          : const Uuid().v4() {
+  ChatProvider({
+    ChatStreamingService? apiService,
+    String? initialSessionId,
+    String? initialMode,
+  }) : _apiService = apiService ?? ApiService(),
+       _sessionId = initialSessionId?.trim().isNotEmpty == true
+           ? initialSessionId!.trim()
+           : const Uuid().v4(),
+       _mode = initialMode == 'expert' ? 'expert' : 'fast' {
     unawaited(_persistSessionId());
   }
 
@@ -26,7 +30,7 @@ class ChatProvider extends ChangeNotifier {
 
   bool _isSending = false;
   bool _isThinking = false;
-  String _mode = 'fast';
+  String _mode;
 
   List<Message> get messages => List.unmodifiable(_messages);
   List<ChatSessionSummary> get sessions => List.unmodifiable(_sessions);
@@ -54,6 +58,7 @@ class ChatProvider extends ChangeNotifier {
       return;
     }
     _mode = mode;
+    unawaited(_persistMode());
     notifyListeners();
   }
 
@@ -175,6 +180,11 @@ class ChatProvider extends ChangeNotifier {
   Future<void> _persistSessionId() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(ApiService.chatSessionIdKey, _sessionId);
+  }
+
+  Future<void> _persistMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(ApiService.chatModeKey, _mode);
   }
 
   Future<void> addAttachment(File file) async {

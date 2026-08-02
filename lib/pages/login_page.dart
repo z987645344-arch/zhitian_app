@@ -53,7 +53,7 @@ class _LoginPageState extends State<LoginPage> {
     } on TimeoutException {
       _showError(ApiService.timeoutErrorMessage);
     } catch (e) {
-      _showError(_briefError(e));
+      _showError(ApiService.userMessageFor(e));
     }
   }
 
@@ -169,11 +169,5 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ],
     );
-  }
-
-  String _briefError(Object error) {
-    final text = error.toString().replaceFirst('Exception: ', '');
-    if (text.length <= 80) return text;
-    return '${text.substring(0, 80)}...';
   }
 }

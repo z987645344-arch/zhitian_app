@@ -40,8 +40,10 @@ class _FilesPageState extends State<FilesPage> {
     try {
       final files = await _apiService.listFiles();
       if (mounted) setState(() => _files = files);
-    } catch (_) {
-      if (mounted) setState(() => _error = '文件列表加载失败');
+    } catch (error) {
+      if (mounted) {
+        setState(() => _error = ApiService.userMessageFor(error));
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -62,8 +64,10 @@ class _FilesPageState extends State<FilesPage> {
       if (outputPath != null) {
         await File(outputPath).writeAsBytes(download.bytes, flush: true);
       }
-    } catch (_) {
-      if (mounted) setState(() => _error = '文件下载失败');
+    } catch (error) {
+      if (mounted) {
+        setState(() => _error = ApiService.userMessageFor(error));
+      }
     } finally {
       if (mounted) setState(() => _busyFileId = null);
     }
@@ -106,8 +110,10 @@ class _FilesPageState extends State<FilesPage> {
               .toList(),
         );
       }
-    } catch (_) {
-      if (mounted) setState(() => _error = '文件删除失败');
+    } catch (error) {
+      if (mounted) {
+        setState(() => _error = ApiService.userMessageFor(error));
+      }
     } finally {
       if (mounted) setState(() => _busyFileId = null);
     }

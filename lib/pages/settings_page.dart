@@ -7,20 +7,23 @@ import 'login_page.dart';
 import '../theme/app_theme.dart';
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key});
+  const SettingsPage({super.key, this.apiService});
+
+  final ApiService? apiService;
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  final ApiService _apiService = ApiService();
+  late final ApiService _apiService = widget.apiService ?? ApiService();
   final TextEditingController _backendController = TextEditingController();
 
   bool _isLoading = true;
   bool _isSaving = false;
   bool _isTesting = false;
-  String? _healthStatus;
+  BackendConnectionResult? _connectionResult;
+  String? _addressError;
 
   @override
   void initState() {
@@ -47,26 +50,51 @@ class _SettingsPageState extends State<SettingsPage> {
     final backendUrl = _backendController.text.trim();
     if (backendUrl.isEmpty || _isSaving) return;
 
-    setState(() => _isSaving = true);
-    await _apiService.saveBackendUrl(backendUrl);
-    if (!mounted) return;
-    setState(() => _isSaving = false);
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('后端地址已保存')));
+    setState(() {
+      _isSaving = true;
+      _addressError = null;
+    });
+    try {
+      final changed = await _apiService.saveBackendUrl(backendUrl);
+      final normalized = await _apiService.getBackendUrl();
+      if (!mounted) return;
+      setState(() => _backendController.text = normalized);
+      if (changed) {
+        context.read<ChatProvider>().newChat();
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('服务地址已更新，请重新登录')));
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute<void>(builder: (_) => const LoginPage()),
+          (_) => false,
+        );
+        return;
+      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('后端地址已保存')));
+    } catch (error) {
+      if (mounted) {
+        setState(() => _addressError = ApiService.userMessageFor(error));
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   Future<void> _testConnection() async {
     if (_isTesting) return;
     setState(() {
       _isTesting = true;
-      _healthStatus = null;
+      _connectionResult = null;
+      _addressError = null;
     });
-    await _apiService.saveBackendUrl(_backendController.text.trim());
-    final status = await _apiService.checkHealth();
+    final result = await _apiService.checkBackendUrl(
+      _backendController.text.trim(),
+    );
     if (!mounted) return;
     setState(() {
-      _healthStatus = status;
+      _connectionResult = result;
       _isTesting = false;
     });
   }
@@ -110,6 +138,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                         const SizedBox(height: 12),
                         TextField(
+                          key: const Key('settings_backend_url'),
                           controller: _backendController,
                           keyboardType: TextInputType.url,
                           style: const TextStyle(fontSize: 15),
@@ -119,6 +148,16 @@ class _SettingsPageState extends State<SettingsPage> {
                             icon: Icons.dns_outlined,
                           ),
                         ),
+                        if (_addressError != null) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            _addressError!,
+                            style: const TextStyle(
+                              color: AppColors.error,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 12),
                         Row(
                           children: [
@@ -157,12 +196,12 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                           ],
                         ),
-                        if (_healthStatus != null) ...[
+                        if (_connectionResult != null) ...[
                           const SizedBox(height: 12),
                           _StatusBox(
-                            status: _healthStatus!,
-                            color: _statusColor(),
-                            icon: _statusIcon(),
+                            message: _connectionResult!.message,
+                            color: _statusColor(_connectionResult!.status),
+                            icon: _statusIcon(_connectionResult!.status),
                           ),
                         ],
                       ],
@@ -216,18 +255,19 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Color _statusColor() {
-    return switch (_healthStatus) {
+  Color _statusColor(String status) {
+    return switch (status) {
       'ok' => AppColors.success,
       'degraded' => AppColors.textMuted,
       _ => AppColors.error,
     };
   }
 
-  IconData _statusIcon() {
-    return switch (_healthStatus) {
+  IconData _statusIcon(String status) {
+    return switch (status) {
       'ok' => Icons.check_circle_outline,
       'degraded' => Icons.warning_amber_outlined,
+      'certificate_error' => Icons.gpp_bad_outlined,
       _ => Icons.error_outline,
     };
   }
@@ -274,12 +314,12 @@ class _SettingsCard extends StatelessWidget {
 
 class _StatusBox extends StatelessWidget {
   const _StatusBox({
-    required this.status,
+    required this.message,
     required this.color,
     required this.icon,
   });
 
-  final String status;
+  final String message;
   final Color color;
   final IconData icon;
 
@@ -296,9 +336,11 @@ class _StatusBox extends StatelessWidget {
         children: [
           Icon(icon, color: color),
           const SizedBox(width: 10),
-          Text(
-            '连接状态：$status',
-            style: TextStyle(color: color, fontWeight: FontWeight.w600),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(color: color, fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),

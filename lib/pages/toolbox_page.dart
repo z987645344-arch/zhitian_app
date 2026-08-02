@@ -142,9 +142,7 @@ class _ToolboxPageState extends State<ToolboxPage> {
       }
     } catch (error) {
       if (mounted) {
-        setState(
-          () => _error = error.toString().replaceFirst('Exception: ', ''),
-        );
+        setState(() => _error = ApiService.userMessageFor(error));
       }
     } finally {
       if (mounted) setState(() => _isProcessing = false);
@@ -169,8 +167,10 @@ class _ToolboxPageState extends State<ToolboxPage> {
       if (outputPath != null) {
         await File(outputPath).writeAsBytes(download.bytes, flush: true);
       }
-    } catch (_) {
-      if (mounted) setState(() => _error = '下载失败');
+    } catch (error) {
+      if (mounted) {
+        setState(() => _error = ApiService.userMessageFor(error));
+      }
     } finally {
       if (mounted) setState(() => _isDownloading = false);
     }

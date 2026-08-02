@@ -74,23 +74,100 @@ class ApiService
   static const String userRoleKey = 'user_role';
   static const String usernameKey = 'username';
   static const String chatSessionIdKey = 'chat_session_id';
+  static const String chatModeKey = 'chat_mode';
   static const String defaultBackendUrl = 'http://localhost:8000';
-  static const String connectionErrorMessage = '⚠️ 无法连接到后端，请检查服务是否启动';
+  static const String connectionErrorMessage = '⚠️ 无法连接服务器，请检查地址和网络连接';
+  static const String certificateErrorMessage =
+      '⚠️ 证书验证失败，请确认服务地址使用有效的 HTTPS 证书';
   static const String timeoutErrorMessage = '⚠️ 请求超时，请稍后重试';
+
+  static String normalizeBackendUrl(String value) {
+    var candidate = value.trim();
+    if (candidate.isEmpty) {
+      throw const FormatException('请输入后端服务地址');
+    }
+    if (!candidate.contains('://')) {
+      final lower = candidate.toLowerCase();
+      final isLoopback =
+          lower == 'localhost' ||
+          lower.startsWith('localhost:') ||
+          lower == '127.0.0.1' ||
+          lower.startsWith('127.0.0.1:') ||
+          lower == '[::1]' ||
+          lower.startsWith('[::1]:');
+      candidate = '${isLoopback ? 'http' : 'https'}://$candidate';
+    }
+
+    final uri = Uri.tryParse(candidate);
+    if (uri == null ||
+        (uri.scheme != 'http' && uri.scheme != 'https') ||
+        uri.host.isEmpty) {
+      throw const FormatException('地址格式无效，请填写完整的 HTTP 或 HTTPS 地址');
+    }
+    if (uri.userInfo.isNotEmpty || uri.hasQuery || uri.hasFragment) {
+      throw const FormatException('地址不能包含账号密码、查询参数或片段');
+    }
+    final host = uri.host.toLowerCase();
+    final isLoopback =
+        host == 'localhost' || host == '127.0.0.1' || host == '::1';
+    if (uri.scheme == 'http' && !isLoopback) {
+      throw const FormatException('远程服务必须使用 HTTPS；HTTP 仅允许本机地址');
+    }
+    return _stripTrailingSlash(uri.toString());
+  }
+
+  static bool isValidBackendUrl(String? value) {
+    if (value == null || value.trim().isEmpty) return false;
+    try {
+      normalizeBackendUrl(value);
+      return true;
+    } on FormatException {
+      return false;
+    }
+  }
+
+  static String userMessageFor(Object error) {
+    final lower = error.toString().toLowerCase();
+    if (error is HandshakeException ||
+        lower.contains('certificate_verify_failed') ||
+        lower.contains('handshake')) {
+      return certificateErrorMessage;
+    }
+    if (error is SocketException ||
+        error is http.ClientException ||
+        lower.contains('connection refused')) {
+      return connectionErrorMessage;
+    }
+    if (error is TimeoutException) return timeoutErrorMessage;
+    if (error is FormatException) return error.message;
+    final text = error.toString().replaceFirst('Exception: ', '');
+    if (text.length <= 80) return text;
+    return '${text.substring(0, 80)}...';
+  }
 
   Future<String> getBackendUrl() async {
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getString(backendUrlKey)?.trim();
     if (saved == null || saved.isEmpty) return defaultBackendUrl;
-    return _stripTrailingSlash(saved);
+    return normalizeBackendUrl(saved);
   }
 
-  Future<void> saveBackendUrl(String backendUrl) async {
+  Future<bool> saveBackendUrl(String backendUrl) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      backendUrlKey,
-      _stripTrailingSlash(backendUrl.trim()),
-    );
+    final normalized = normalizeBackendUrl(backendUrl);
+    final saved = prefs.getString(backendUrlKey)?.trim();
+    final previous = isValidBackendUrl(saved)
+        ? normalizeBackendUrl(saved!)
+        : null;
+    final changed = previous != normalized;
+    await prefs.setString(backendUrlKey, normalized);
+    if (changed) {
+      await prefs.remove(authTokenKey);
+      await prefs.remove(userRoleKey);
+      await prefs.remove(usernameKey);
+      await prefs.remove(chatSessionIdKey);
+    }
+    return changed;
   }
 
   Future<void> login({
@@ -177,26 +254,58 @@ class ApiService
     }
   }
 
-  Future<String> checkHealth() async {
+  Future<BackendConnectionResult> checkBackendUrl(String backendUrl) async {
+    final client = _clientFactory();
     try {
-      final backendUrl = await getBackendUrl();
-      final uri = Uri.parse('$backendUrl/health');
-      final response = await http
+      final normalized = normalizeBackendUrl(backendUrl);
+      final uri = Uri.parse('$normalized/health');
+      final response = await client
           .get(uri, headers: await _authHeaders())
           .timeout(const Duration(seconds: 8));
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        return 'error';
+        return BackendConnectionResult.error(
+          '服务器已响应，但健康检查返回 HTTP ${response.statusCode}',
+        );
       }
 
       final body = jsonDecode(utf8.decode(response.bodyBytes));
       final status = body is Map<String, dynamic> ? body['status'] : null;
-      if (status == 'ok' || status == 'degraded' || status == 'error') {
-        return status as String;
+      if (status == 'ok') {
+        return const BackendConnectionResult(
+          status: 'ok',
+          message: '连接成功，服务运行正常',
+        );
       }
-      return 'error';
-    } catch (_) {
-      return 'error';
+      if (status == 'degraded') {
+        return const BackendConnectionResult(
+          status: 'degraded',
+          message: '已连接，但服务处于降级状态',
+        );
+      }
+      return const BackendConnectionResult(
+        status: 'error',
+        message: '服务器已响应，但健康状态异常',
+      );
+    } catch (error) {
+      final lower = error.toString().toLowerCase();
+      final status =
+          error is HandshakeException ||
+              lower.contains('certificate_verify_failed') ||
+              lower.contains('handshake')
+          ? 'certificate_error'
+          : 'error';
+      return BackendConnectionResult(
+        status: status,
+        message: userMessageFor(error).replaceFirst('⚠️ ', ''),
+      );
+    } finally {
+      client.close();
     }
+  }
+
+  Future<String> checkHealth() async {
+    final backendUrl = await getBackendUrl();
+    return (await checkBackendUrl(backendUrl)).status;
   }
 
   @override
@@ -588,12 +697,14 @@ class ApiService
           continue;
         }
       }
-    } on SocketException {
-      yield ChatStreamEvent.chunk(connectionErrorMessage);
-    } on TimeoutException {
-      yield ChatStreamEvent.chunk(timeoutErrorMessage);
+    } on HandshakeException catch (error) {
+      yield ChatStreamEvent.chunk(userMessageFor(error));
+    } on SocketException catch (error) {
+      yield ChatStreamEvent.chunk(userMessageFor(error));
+    } on TimeoutException catch (error) {
+      yield ChatStreamEvent.chunk(userMessageFor(error));
     } catch (e) {
-      yield ChatStreamEvent.chunk('⚠️ 发生错误：${_briefError(e)}');
+      yield ChatStreamEvent.chunk(userMessageFor(e));
     } finally {
       client.close();
     }
@@ -635,10 +746,12 @@ class ApiService
         attachmentId: attachmentId,
         filename: filename,
       );
-    } on SocketException {
-      throw Exception(connectionErrorMessage);
-    } on TimeoutException {
-      throw Exception(timeoutErrorMessage);
+    } on HandshakeException catch (error) {
+      throw Exception(userMessageFor(error));
+    } on SocketException catch (error) {
+      throw Exception(userMessageFor(error));
+    } on TimeoutException catch (error) {
+      throw Exception(userMessageFor(error));
     } finally {
       client.close();
     }
@@ -689,13 +802,23 @@ class ApiService
     return quoted?.trim().isNotEmpty == true ? quoted!.trim() : fallback;
   }
 
-  String _stripTrailingSlash(String value) {
-    return value.endsWith('/') ? value.substring(0, value.length - 1) : value;
+  static String _stripTrailingSlash(String value) {
+    var result = value;
+    while (result.endsWith('/')) {
+      result = result.substring(0, result.length - 1);
+    }
+    return result;
   }
+}
 
-  String _briefError(Object error) {
-    final text = error.toString().replaceAll('\\n', ' ');
-    if (text.length <= 80) return text;
-    return '${text.substring(0, 80)}...';
-  }
+class BackendConnectionResult {
+  const BackendConnectionResult({required this.status, required this.message});
+
+  const BackendConnectionResult.error(String message)
+    : this(status: 'error', message: message);
+
+  final String status;
+  final String message;
+
+  bool get isHealthy => status == 'ok' || status == 'degraded';
 }

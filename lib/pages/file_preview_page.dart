@@ -46,8 +46,7 @@ class _FilePreviewPageState extends State<FilePreviewPage> {
       if (mounted) setState(() => _error = '预览请求超时，请稍后重试');
     } catch (error) {
       if (mounted) {
-        final message = error.toString().replaceFirst('Exception: ', '');
-        setState(() => _error = message.isEmpty ? '文件预览失败' : message);
+        setState(() => _error = ApiService.userMessageFor(error));
       }
     } finally {
       if (mounted) setState(() => _loading = false);

@@ -43,20 +43,23 @@ void main() {
     });
   });
 
-  test('customer verification code request omits enterprise password', () async {
-    final client = _AuthClient();
-    SharedPreferences.setMockInitialValues({
-      ApiService.backendUrlKey: 'http://localhost:8000',
-    });
-    await ApiService(
-      clientFactory: () => client,
-    ).sendCustomerRegisterCode(email: 'customer@example.test');
-    // customer场景不需要企业密码，请求体只有邮箱和用途
-    expect(client.body, {
-      'email': 'customer@example.test',
-      'purpose': 'customer_register',
-    });
-  });
+  test(
+    'customer verification code request omits enterprise password',
+    () async {
+      final client = _AuthClient();
+      SharedPreferences.setMockInitialValues({
+        ApiService.backendUrlKey: 'http://localhost:8000',
+      });
+      await ApiService(
+        clientFactory: () => client,
+      ).sendCustomerRegisterCode(email: 'customer@example.test');
+      // customer场景不需要企业密码，请求体只有邮箱和用途
+      expect(client.body, {
+        'email': 'customer@example.test',
+        'purpose': 'customer_register',
+      });
+    },
+  );
 
   for (final mode in ['fast', 'expert']) {
     test('chat stream serializes $mode mode in the request body', () async {

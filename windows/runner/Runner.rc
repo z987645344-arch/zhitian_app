@@ -89,12 +89,15 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
+            // Keep these two storage identity fields stable. path_provider_windows
+            // uses CompanyName\ProductName for SharedPreferences, so changing them
+            // would make upgrades appear to lose backend/auth/session settings.
             VALUE "CompanyName", "com.zhitian" "\0"
-            VALUE "FileDescription", "zhitian_app" "\0"
+            VALUE "FileDescription", "知天企业知识助手" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "zhitian_app" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.zhitian. All rights reserved." "\0"
-            VALUE "OriginalFilename", "zhitian_app.exe" "\0"
+            VALUE "InternalName", "zhitian" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 Zheng. All rights reserved." "\0"
+            VALUE "OriginalFilename", "zhitian.exe" "\0"
             VALUE "ProductName", "zhitian_app" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END

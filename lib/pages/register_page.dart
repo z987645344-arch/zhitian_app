@@ -100,7 +100,7 @@ class _RegisterPageState extends State<RegisterPage> {
     } on TimeoutException {
       _showSendError(ApiService.timeoutErrorMessage);
     } catch (error) {
-      _showSendError(error.toString().replaceFirst('Exception: ', ''));
+      _showSendError(ApiService.userMessageFor(error));
     }
   }
 
@@ -156,7 +156,7 @@ class _RegisterPageState extends State<RegisterPage> {
     } on TimeoutException {
       _showError(ApiService.timeoutErrorMessage);
     } catch (error) {
-      _showError(error.toString().replaceFirst('Exception: ', ''));
+      _showError(ApiService.userMessageFor(error));
     }
   }
 
