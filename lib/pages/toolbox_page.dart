@@ -82,8 +82,10 @@ class _ToolboxPageState extends State<ToolboxPage> {
         setState(() => _error = '不支持该文件格式');
         return;
       }
-      if (File(paths[index]).lengthSync() > 20 * 1024 * 1024) {
-        setState(() => _error = '文件超过20MB限制');
+      if (File(paths[index]).lengthSync() > ApiService.maxUploadSizeBytes) {
+        setState(
+          () => _error = '文件超过 ${ApiService.maxUploadSizeMb}MB 限制，请拆分后再试',
+        );
         return;
       }
     }
@@ -309,8 +311,9 @@ class _ToolboxPageState extends State<ToolboxPage> {
                                 ),
                               ),
                               const SizedBox(height: 4),
-                              const Text(
-                                '支持点击选择或拖拽文件',
+                              Text(
+                                '支持点击选择或拖拽文件，单个不超过 '
+                                '${ApiService.maxUploadSizeMb}MB',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: AppColors.textMuted,
@@ -430,7 +433,7 @@ class _ToolboxPageState extends State<ToolboxPage> {
 
   String _errorMessage(String errorType) => switch (errorType) {
     'unsupported_format' => '不支持该文件格式',
-    'file_too_large' => '文件超过大小限制',
+    'file_too_large' => '文件超过 ${ApiService.maxUploadSizeMb}MB 限制',
     'timeout' => '转换超时，请稍后重试',
     _ => '转换失败',
   };

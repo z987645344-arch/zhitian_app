@@ -214,8 +214,8 @@ class ChatProvider extends ChangeNotifier {
       }.contains(extension)) {
         throw Exception('不支持该文件格式');
       }
-      if (await file.length() > 20 * 1024 * 1024) {
-        throw Exception('文件超过20MB限制');
+      if (await file.length() > ApiService.maxUploadSizeBytes) {
+        throw Exception('文件超过 ${ApiService.maxUploadSizeMb}MB 限制，请拆分后再试');
       }
       final result = await _apiService.uploadChatAttachment(sessionId, file);
       _replaceAttachment(
