@@ -1,4 +1,6 @@
 @echo off
+rem [说明] 仅启动Flutter Windows调试客户端，不启动Compose。
+rem Compose用http://localhost；:8000仅用于本机非容器后端调试。
 setlocal
 cd /d "%~dp0"
 
