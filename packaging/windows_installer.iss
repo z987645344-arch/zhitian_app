@@ -1,9 +1,9 @@
 #ifndef MyAppVersion
-  #define MyAppVersion "2.6.0"
+  #define MyAppVersion "3.0.0"
 #endif
 
 #ifndef MyOutputBaseFilename
-  #define MyOutputBaseFilename "zhitian-windows-setup-2.6.0"
+  #define MyOutputBaseFilename "zhitian-windows-setup-3.0.0"
 #endif
 
 #define MyAppName "知天"

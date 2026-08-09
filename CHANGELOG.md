@@ -1,5 +1,11 @@
 # zhitian_app CHANGELOG
 
+## 2026-08-09 v3.0交付缺口④：发布元数据统一为3.0.0+300
+- 全仓核对未发现任何用应用版本做API协商、后端兼容判断或功能开关的代码；`pubspec.yaml`版本只进入Flutter构建元数据，Windows Runner通过`FLUTTER_VERSION*`宏写入EXE资源，Inno Setup脚本另行读取自身的`MyAppVersion`常量。
+- `pubspec.yaml`由`2.6.0+260`更新为`3.0.0+300`，沿用“主次修订号去点后作为三位构建号”的既有规则；`packaging/windows_installer.iss`的`MyAppVersion`同步为`3.0.0`，输出名同步为`zhitian-windows-setup-3.0.0`。稳定`AppId`、内部`CompanyName`和`ProductName`均未改动，不影响既有SharedPreferences目录或升级保留逻辑。
+- 真实验证：Flutter 3.41.6下`flutter analyze --no-pub`无问题、`flutter test --no-pub`为`42 tests passed`，`flutter build windows --release --no-pub`成功；生成的`build/windows/x64/runner/Release/zhitian.exe`真实`FileVersion`和`ProductVersion`均为`3.0.0+300`。
+- 本机当前未找到`ISCC.exe`，因此本轮没有伪称生成新的3.0.0安装包；安装器源码已同步，最后一个实际构建的安装包仍是历史`zhitian-windows-setup-2.6.0.exe`。另据真实`git tag`核对，本仓库最新标签仍为`v2.7`，本轮按任务范围不创建或移动标签；若要做到客户端仓库标签也为v3.0，需要单独执行发布标记。
+
 ## 2026-08-09 F36/F37上传上限交付归位并重建Windows安装包
 - 将此前仅位于本地`master`的F36提交`9ac62f0`推送到远程：聊天附件与工具箱不再各自硬编码20MB，统一读取`ApiService.maxUploadSizeMb/maxUploadSizeBytes`。用三点差异`git diff master...f37-embedding-upgrade-verify`核实F37分支真实贡献仅为`lib/services/api_service.dart`的3增3删，把共享上限由2MB同步为后端当前的1MB并更新原因注释，无其他功能夹带。
 - F37以`--no-ff`合并保留独立演进节点，合并提交`949d626`已推送`origin/master`且远程HEAD逐哈希确认一致；本地`f37-embedding-upgrade-verify`已删除，远程原本不存在同名分支，最终仅保留`master`。
