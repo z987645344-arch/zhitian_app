@@ -1,5 +1,11 @@
 # zhitian_app CHANGELOG
 
+## 2026-08-09 Windows 3.0.0安装包与v3.0发布标签补齐
+- 本机Inno Setup 6.7.3命令行编译器可用，但`iscc`尚未加入当前PATH；通过`C:\Program Files (x86)\Inno Setup 6\ISCC.exe /?`真实确认编译器。标准安装目录未附带脚本所需的`ChineseSimplified.isl`，本轮使用Inno Setup官方`is-6_7_3`源码中的简体中文消息文件，经标准输入编译方式保持既有中文安装流程，未改动安装器源码或应用功能。
+- 重新执行`flutter build windows --release --no-pub`成功，包内`zhitian.exe`的`FileVersion`和`ProductVersion`均为`3.0.0+300`；随后由`packaging/windows_installer.iss`成功生成`dist/zhitian-windows-setup-3.0.0.exe`，文件大小`11,506,567`字节，SHA-256=`539D49812A9CF97B954C33D11654DFB855C5027F427AFC70DA53373C438F5481`。安装器自身`ProductVersion`为`3.0.0`，与Inno Setup版本格式一致。
+- 已删除会与当前能力产生混淆的旧产物`dist/zhitian-windows-setup-2.6.0.exe`，`dist/`现仅保留3.0.0安装包。
+- 注释标签`v3.0`已创建并推送，精确落点为版本统一提交`2fea214c18ea2dd5bc7803b7f18dd1478a56c1d3`；标签说明明确包含核心功能验证完成、F36/F37已合并、上传限制统一为1MB及版本号统一为`3.0.0+300`。本条CHANGELOG记录作为标签发布后的文档提交，不改变标签落点。
+
 ## 2026-08-09 v3.0交付缺口④：发布元数据统一为3.0.0+300
 - 全仓核对未发现任何用应用版本做API协商、后端兼容判断或功能开关的代码；`pubspec.yaml`版本只进入Flutter构建元数据，Windows Runner通过`FLUTTER_VERSION*`宏写入EXE资源，Inno Setup脚本另行读取自身的`MyAppVersion`常量。
 - `pubspec.yaml`由`2.6.0+260`更新为`3.0.0+300`，沿用“主次修订号去点后作为三位构建号”的既有规则；`packaging/windows_installer.iss`的`MyAppVersion`同步为`3.0.0`，输出名同步为`zhitian-windows-setup-3.0.0`。稳定`AppId`、内部`CompanyName`和`ProductName`均未改动，不影响既有SharedPreferences目录或升级保留逻辑。
