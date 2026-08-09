@@ -9,10 +9,18 @@ import '../widgets/auth_shell.dart';
 /// 地址保存到SharedPreferences；完成后后续启动直接进入登录或工作台。
 /// 远程服务只接受HTTPS，本机联调可使用localhost/127.0.0.1的HTTP地址。
 class BackendSetupPage extends StatefulWidget {
-  const BackendSetupPage({super.key, required this.nextPage, this.apiService});
+  const BackendSetupPage({
+    super.key,
+    this.nextPage,
+    this.apiService,
+    this.initialUrl,
+    this.returnToPrevious = false,
+  }) : assert(returnToPrevious || nextPage != null);
 
-  final Widget nextPage;
+  final Widget? nextPage;
   final ApiService? apiService;
+  final String? initialUrl;
+  final bool returnToPrevious;
 
   @override
   State<BackendSetupPage> createState() => _BackendSetupPageState();
@@ -26,6 +34,12 @@ class _BackendSetupPageState extends State<BackendSetupPage> {
   bool _isTesting = false;
   String? _errorText;
   BackendConnectionResult? _connectionResult;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.text = widget.initialUrl ?? ApiService.defaultBackendUrl;
+  }
 
   @override
   void dispose() {
@@ -42,8 +56,12 @@ class _BackendSetupPageState extends State<BackendSetupPage> {
     try {
       await _apiService.saveBackendUrl(_controller.text);
       if (!mounted) return;
+      if (widget.returnToPrevious) {
+        Navigator.of(context).pop(true);
+        return;
+      }
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(builder: (_) => widget.nextPage),
+        MaterialPageRoute<void>(builder: (_) => widget.nextPage!),
       );
     } catch (error) {
       if (mounted) {
@@ -73,11 +91,35 @@ class _BackendSetupPageState extends State<BackendSetupPage> {
   Widget build(BuildContext context) {
     return AuthShell(
       title: '连接企业服务',
-      subtitle: '首次使用需要设置后端地址，保存后可随时在“设置”中修改。',
-      footer: const Text(
-        '远程服务必须使用 HTTPS；本机联调可使用 localhost 或 127.0.0.1。',
-        textAlign: TextAlign.center,
-        style: TextStyle(color: AppColors.textMuted, fontSize: 12, height: 1.5),
+      subtitle: widget.returnToPrevious
+          ? '修改后会立即使用新地址；地址变化时需要重新登录。'
+          : '首次使用需要设置后端地址，保存后可随时修改。',
+      onBack: widget.returnToPrevious
+          ? () => Navigator.of(context).pop(false)
+          : null,
+      backLabel: '返回',
+      footer: const Column(
+        children: [
+          Text(
+            'Compose 环境填写 http://localhost/api；直接运行本机后端才使用 :8000。',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 12,
+              height: 1.5,
+            ),
+          ),
+          SizedBox(height: 4),
+          Text(
+            '远程服务必须使用 HTTPS；本机联调可使用 localhost 或 127.0.0.1。',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 12,
+              height: 1.5,
+            ),
+          ),
+        ],
       ),
       children: [
         const Text(
@@ -96,7 +138,7 @@ class _BackendSetupPageState extends State<BackendSetupPage> {
           textInputAction: TextInputAction.done,
           autofocus: true,
           decoration: InputDecoration(
-            hintText: 'https://api.example.com',
+            hintText: ApiService.defaultBackendUrl,
             prefixIcon: const Icon(Icons.dns_outlined),
             filled: true,
             fillColor: AppColors.surface,

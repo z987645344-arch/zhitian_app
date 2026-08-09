@@ -20,6 +20,12 @@ add_executable(${BINARY_NAME} WIN32
 # that need different build settings.
 apply_standard_settings(${BINARY_NAME})
 
+# Runner sources are UTF-8. MSVC otherwise interprets UTF-8 files without a BOM
+# using the current Windows ANSI code page, which corrupts the native title.
+if(MSVC)
+  target_compile_options(${BINARY_NAME} PRIVATE /utf-8)
+endif()
+
 # Add preprocessor definitions for the build version.
 target_compile_definitions(${BINARY_NAME} PRIVATE "FLUTTER_VERSION=\"${FLUTTER_VERSION}\"")
 target_compile_definitions(${BINARY_NAME} PRIVATE "FLUTTER_VERSION_MAJOR=${FLUTTER_VERSION_MAJOR}")

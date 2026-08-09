@@ -71,7 +71,10 @@ flutter pub get
 flutter run -d windows
 ```
 
-首次启动后，在设置页确认后端地址；默认是 `http://localhost:8000`。
+首次启动后，在引导页确认后端地址。Docker Compose 环境填写
+`http://localhost/api`；只有明确直接运行本机非容器后端时才填写
+`http://localhost:8000`。登录和注册页均提供“服务器设置”入口，地址失效时
+无需先登录即可修改。
 
 ## 推荐评审路径
 

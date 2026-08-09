@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/auth_shell.dart';
+import 'backend_setup_page.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key, this.apiService});
@@ -32,6 +33,13 @@ class _RegisterPageState extends State<RegisterPage> {
   Timer? _cooldownTimer;
   String? _error;
   String? _notice;
+  String? _backendUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBackendUrl();
+  }
 
   @override
   void dispose() {
@@ -173,16 +181,57 @@ class _RegisterPageState extends State<RegisterPage> {
     return '发送验证码';
   }
 
+  Future<void> _loadBackendUrl() async {
+    try {
+      final backendUrl = await _apiService.getBackendUrl();
+      if (mounted) setState(() => _backendUrl = backendUrl);
+    } catch (error) {
+      debugPrint('读取注册页服务器地址失败: ${error.runtimeType}');
+      if (mounted) {
+        setState(() => _backendUrl = ApiService.defaultBackendUrl);
+      }
+    }
+  }
+
+  Future<void> _openBackendSettings() async {
+    final saved = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => BackendSetupPage(
+          apiService: _apiService,
+          initialUrl: _backendUrl ?? ApiService.defaultBackendUrl,
+          returnToPrevious: true,
+        ),
+      ),
+    );
+    if (saved == true) await _loadBackendUrl();
+  }
+
   @override
   Widget build(BuildContext context) {
     return AuthShell(
       title: '创建个人账号',
       subtitle: '个人账号用于日常对话与文件工作台；企业角色需由管理员审批开通。',
       onBack: () => Navigator.of(context).pop(),
-      footer: const Text(
-        '注册即表示同意在企业内部合规使用本工作台。',
-        textAlign: TextAlign.center,
-        style: TextStyle(color: AppColors.textMuted, fontSize: 12, height: 1.5),
+      footer: Column(
+        children: [
+          const Text(
+            '注册即表示同意在企业内部合规使用本工作台。',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 12,
+              height: 1.5,
+            ),
+          ),
+          AuthServerSettingsLink(
+            backendUrl: _backendUrl,
+            onPressed: _openBackendSettings,
+            buttonKey: const Key('register_server_settings'),
+            showComposeMigrationHint: ApiService.isLegacyLocalDebugUrl(
+              _backendUrl,
+            ),
+          ),
+        ],
       ),
       children: [
         AuthField(

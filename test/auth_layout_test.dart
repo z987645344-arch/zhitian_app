@@ -36,6 +36,7 @@ void main() {
     expect(find.text('使用前请确认内容权限，并核对重要结论'), findsNothing);
     expect(find.byKey(const Key('login_email')), findsOneWidget);
     expect(find.byKey(const Key('login_password')), findsOneWidget);
+    expect(find.byKey(const Key('login_server_settings')), findsOneWidget);
   });
 
   testWidgets('register page renders without overflow at both widths', (
@@ -57,5 +58,6 @@ void main() {
     ]) {
       expect(find.byKey(Key(key)), findsOneWidget);
     }
+    expect(find.byKey(const Key('register_server_settings')), findsOneWidget);
   });
 }

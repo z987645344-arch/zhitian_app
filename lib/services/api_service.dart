@@ -75,7 +75,9 @@ class ApiService
   static const String usernameKey = 'username';
   static const String chatSessionIdKey = 'chat_session_id';
   static const String chatModeKey = 'chat_mode';
-  static const String defaultBackendUrl = 'http://localhost:8000';
+  static const String composeBackendUrl = 'http://localhost/api';
+  static const String legacyLocalDebugBackendUrl = 'http://localhost:8000';
+  static const String defaultBackendUrl = composeBackendUrl;
   static const String connectionErrorMessage = '⚠️ 无法连接服务器，请检查地址和网络连接';
   static const String certificateErrorMessage =
       '⚠️ 证书验证失败，请确认服务地址使用有效的 HTTPS 证书';
@@ -93,13 +95,14 @@ class ApiService
     }
     if (!candidate.contains('://')) {
       final lower = candidate.toLowerCase();
+      final authority = lower.split('/').first;
       final isLoopback =
-          lower == 'localhost' ||
-          lower.startsWith('localhost:') ||
-          lower == '127.0.0.1' ||
-          lower.startsWith('127.0.0.1:') ||
-          lower == '[::1]' ||
-          lower.startsWith('[::1]:');
+          authority == 'localhost' ||
+          authority.startsWith('localhost:') ||
+          authority == '127.0.0.1' ||
+          authority.startsWith('127.0.0.1:') ||
+          authority == '[::1]' ||
+          authority.startsWith('[::1]:');
       candidate = '${isLoopback ? 'http' : 'https'}://$candidate';
     }
 
@@ -129,6 +132,11 @@ class ApiService
     } on FormatException {
       return false;
     }
+  }
+
+  static bool isLegacyLocalDebugUrl(String? value) {
+    if (!isValidBackendUrl(value)) return false;
+    return normalizeBackendUrl(value!) == legacyLocalDebugBackendUrl;
   }
 
   static String userMessageFor(Object error) {

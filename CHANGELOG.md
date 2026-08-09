@@ -200,3 +200,16 @@
 ## 2026-08-09 明确Flutter Windows调试启动脚本的Compose边界
 - `启动前端.bat`重命名为`启动Flutter Windows调试客户端.bat`，实际命令仍为`flutter run -d windows`，功能未改变。
 - 脚本新增醒目说明：它只启动Flutter客户端、不负责启动Compose；配合Compose测试时后端地址必须使用`http://localhost`（不带`:8000`），`http://localhost:8000`仅用于明确启动本机非容器后端的纯调试场景，避免客户端静默连入错误数据环境。
+
+## 2026-08-09 修复 Flutter 调试脚本 CMD 编码并完成四仓批处理审计
+- **问题修复**：`启动Flutter Windows调试客户端.bat` 原为 UTF-8 无 BOM + LF，Windows CMD 按 CP936 读取时会把中文 `rem` 注释解码为乱码，并可能吞并相邻命令；现已转换为 CP936（GBK）无 BOM + CRLF。
+- **核心命令保护**：转换前后逻辑文本逐字一致，`flutter run -d windows` 保持且仅出现 1 次。
+- **真实运行验证**：修复后的脚本成功完成依赖解析、Windows Debug 构建并进入 `Flutter run key commands` 状态，未出现中文注释被当作命令或相邻行被吞并。
+- **全仓排查**：同步检查 `zhitian`、`zhitian_admin`、`zhitian_app`、`zhitian-deploy`；共发现 8 个项目维护的 `.bat` 和后端 `.venv/Scripts` 自动生成的 2 个。后端 2 个项目脚本和本脚本完成转换，部署仓库 5 个及虚拟环境 2 个原本已符合 CP936 兼容编码 + CRLF，管理后台无批处理文件。此次为此前部署脚本编码修复遗漏范围的完整收口。
+
+## 2026-08-09 修复 Compose 地址自救入口与 Windows 原生标题乱码
+- **连接根因与契约修正**：真实Compose四服务均healthy且`/api/ready`为200，但客户端持久化的旧值为`http://localhost:8000`，宿主机8000未暴露；进一步实测`http://localhost/health`为404、`http://localhost/api/health`为200，确认Flutter的Compose API基址必须是`http://localhost/api`。默认值、首次引导、客户端README、调试批处理和部署脚本/README已统一；不带协议的`localhost/api`规范化也修正为HTTP而非误补HTTPS。
+- **认证前可恢复**：登录与注册页现在始终显示当前服务器地址并提供“服务器设置”，无需登录即可修改和测试；检测到旧`:8000`配置时明确提示Compose迁移地址。地址变化仍复用既有安全行为清除旧JWT、角色、用户名和会话，避免跨服务器复用凭据。
+- **标题乱码根治**：`main.cpp`为UTF-8无BOM，而Runner原先没有MSVC `/utf-8`，导致`L"知天"`按CP936编译成`鐭ゅぉ`；`windows/runner/CMakeLists.txt`现对Runner启用`/utf-8`。新Debug/Release EXE内正确“知天”各2处、错误字符串0处，隐藏启动后的Win32真实窗口标题为“知天”，版本资源仍为`3.0.0+300`。
+- **安装器可复现**：Inno Setup 6.7.3默认不含`ChineseSimplified.isl`，旧脚本依赖构建机额外文件；现固定引入其官方`is-6_7_3`标签翻译到`packaging/`并改用项目内路径。新`dist/zhitian-windows-setup-3.0.0.exe`为11,508,985字节，SHA-256=`896D2013AE956970D806C69A201D4384309414CE6C2FE0DFE9FCB34C01AC4065`。
+- **回归**：`flutter analyze --no-pub`无问题，完整`flutter test --no-pub`为`44 tests passed`（原42项）；Debug与Release构建、Inno安装包编译均成功。验证过程没有改写用户SharedPreferences，旧地址仍由用户在新入口中自行确认修改。

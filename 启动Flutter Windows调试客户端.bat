@@ -1,6 +1,6 @@
 @echo off
-rem [è¯´æ˜Ž] ä»…å¯åŠ¨Flutter Windowsè°ƒè¯•å®¢æˆ·ç«¯ï¼Œä¸å¯åŠ¨Composeã€‚
-rem Composeç”¨http://localhostï¼›:8000ä»…ç”¨äºŽæœ¬æœºéžå®¹å™¨åŽç«¯è°ƒè¯•ã€‚
+rem [ËµÃ÷] ½öÆô¶¯Flutter Windowsµ÷ÊÔ¿Í»§¶Ë£¬²»Æô¶¯Compose¡£
+rem ComposeÓÃhttp://localhost/api£»:8000½öÓÃÓÚ±¾»ú·ÇÈÝÆ÷ºó¶Ëµ÷ÊÔ¡£
 setlocal
 cd /d "%~dp0"
 

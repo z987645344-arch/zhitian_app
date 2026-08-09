@@ -14,6 +14,7 @@ class AuthShell extends StatelessWidget {
     required this.subtitle,
     required this.children,
     this.onBack,
+    this.backLabel = '返回登录',
     this.footer,
   });
 
@@ -28,6 +29,9 @@ class AuthShell extends StatelessWidget {
 
   /// 非空时在表单卡片左上角显示返回入口。
   final VoidCallback? onBack;
+
+  /// 返回入口文案。首次配置以外的页面可按真实返回目标覆盖。
+  final String backLabel;
 
   /// 卡片底部的次级操作区（注册入口 / 返回登录）。
   final Widget? footer;
@@ -113,7 +117,7 @@ class AuthShell extends StatelessWidget {
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   icon: const Icon(Icons.arrow_back, size: 16),
-                  label: const Text('返回登录'),
+                  label: Text(backLabel),
                 ),
               ),
             if (onBack != null) const SizedBox(height: 12),
@@ -147,6 +151,59 @@ class AuthShell extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// 登录/注册页共用的服务器地址入口，确保认证失败时仍可修改连接配置。
+class AuthServerSettingsLink extends StatelessWidget {
+  const AuthServerSettingsLink({
+    super.key,
+    required this.backendUrl,
+    required this.onPressed,
+    this.buttonKey,
+    this.showComposeMigrationHint = false,
+  });
+
+  final String? backendUrl;
+  final VoidCallback onPressed;
+  final Key? buttonKey;
+  final bool showComposeMigrationHint;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          '当前服务器：${backendUrl ?? '正在读取…'}',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: AppColors.textMuted,
+            fontSize: 12,
+            height: 1.5,
+          ),
+        ),
+        if (showComposeMigrationHint)
+          const Padding(
+            padding: EdgeInsets.only(top: 4),
+            child: Text(
+              '检测到旧的本机调试地址；使用 Compose 请改为 http://localhost/api',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.error,
+                fontSize: 12,
+                height: 1.5,
+              ),
+            ),
+          ),
+        TextButton.icon(
+          key: buttonKey,
+          onPressed: onPressed,
+          icon: const Icon(Icons.dns_outlined, size: 16),
+          label: const Text('服务器设置'),
+        ),
+      ],
     );
   }
 }

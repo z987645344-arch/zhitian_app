@@ -6,24 +6,34 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/auth_shell.dart';
+import 'backend_setup_page.dart';
 import 'chat_page.dart';
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({super.key, this.apiService});
+
+  final ApiService? apiService;
 
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final ApiService _apiService = ApiService();
+  late final ApiService _apiService = widget.apiService ?? ApiService();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   bool _isLoading = false;
   bool _obscurePassword = true;
   String? _errorText;
+  String? _backendUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBackendUrl();
+  }
 
   @override
   void dispose() {
@@ -77,30 +87,67 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  Future<void> _loadBackendUrl() async {
+    try {
+      final backendUrl = await _apiService.getBackendUrl();
+      if (mounted) setState(() => _backendUrl = backendUrl);
+    } catch (error) {
+      debugPrint('读取登录页服务器地址失败: ${error.runtimeType}');
+      if (mounted) {
+        setState(() => _backendUrl = ApiService.defaultBackendUrl);
+      }
+    }
+  }
+
+  Future<void> _openBackendSettings() async {
+    final saved = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => BackendSetupPage(
+          apiService: _apiService,
+          initialUrl: _backendUrl ?? ApiService.defaultBackendUrl,
+          returnToPrevious: true,
+        ),
+      ),
+    );
+    if (saved == true) await _loadBackendUrl();
+  }
+
   @override
   Widget build(BuildContext context) {
     return AuthShell(
       title: '安全登录',
       subtitle: '使用已获准的企业邮箱账号进入工作台。',
-      footer: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      footer: Column(
         children: [
-          const Text(
-            '还没有个人账号？',
-            style: TextStyle(color: AppColors.textMuted, fontSize: 13),
-          ),
-          TextButton(
-            onPressed: _isLoading ? null : _openRegister,
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              minimumSize: const Size(0, 32),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              textStyle: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                '还没有个人账号？',
+                style: TextStyle(color: AppColors.textMuted, fontSize: 13),
               ),
+              TextButton(
+                onPressed: _isLoading ? null : _openRegister,
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  minimumSize: const Size(0, 32),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  textStyle: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                child: const Text('立即注册'),
+              ),
+            ],
+          ),
+          AuthServerSettingsLink(
+            backendUrl: _backendUrl,
+            onPressed: _openBackendSettings,
+            buttonKey: const Key('login_server_settings'),
+            showComposeMigrationHint: ApiService.isLegacyLocalDebugUrl(
+              _backendUrl,
             ),
-            child: const Text('立即注册'),
           ),
         ],
       ),

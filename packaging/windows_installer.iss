@@ -34,7 +34,9 @@ RestartApplications=no
 SetupLogging=yes
 
 [Languages]
-Name: "chinesesimp"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
+; 随项目固定Inno Setup 6.7.3官方源码标签中的简体中文翻译，
+; 避免依赖每台构建机是否额外安装非内置语言文件。
+Name: "chinesesimp"; MessagesFile: "ChineseSimplified.isl"
 
 [Files]
 Source: "..\build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
