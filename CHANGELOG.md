@@ -1,5 +1,11 @@
 # zhitian_app CHANGELOG
 
+## 2026-08-09 F36/F37上传上限交付归位并重建Windows安装包
+- 将此前仅位于本地`master`的F36提交`9ac62f0`推送到远程：聊天附件与工具箱不再各自硬编码20MB，统一读取`ApiService.maxUploadSizeMb/maxUploadSizeBytes`。用三点差异`git diff master...f37-embedding-upgrade-verify`核实F37分支真实贡献仅为`lib/services/api_service.dart`的3增3删，把共享上限由2MB同步为后端当前的1MB并更新原因注释，无其他功能夹带。
+- F37以`--no-ff`合并保留独立演进节点，合并提交`949d626`已推送`origin/master`且远程HEAD逐哈希确认一致；本地`f37-embedding-upgrade-verify`已删除，远程原本不存在同名分支，最终仅保留`master`。
+- 合并后`flutter analyze --no-pub`无问题，`flutter test --no-pub`为`42 tests passed`；源码常量`maxUploadSizeMb=1`与后端`config.MAX_UPLOAD_SIZE_MB=1`一致。
+- 沿用已有发布流程完成`flutter build windows --release --no-pub`，Release共15个文件、30,691,492字节；随后用Inno Setup 7.0.2和`packaging/windows_installer.iss`重新打包成功。新安装包`dist/zhitian-windows-setup-2.6.0.exe`为11,498,128字节，SHA-256=`92C48628A8A456A8D003CE5AAD96E645815FF1748AD056714A8C3D7C37CC0F57`。本轮未擅自变更发布元数据，应用仍为`2.6.0+260`、安装包标识仍为`2.6.0`。
+
 ## 2026-07-31 Windows Release、服务地址引导与安装升级闭环
 - 后端地址由原有“设置页可修改”补齐为完整首次启动流程：未保存有效地址时先进入“连接企业服务”引导，保存到Windows `SharedPreferences`后再进入登录；设置页继续支持随时修改和不落盘的连接测试。地址统一规范化，远程地址强制HTTPS，HTTP只允许`localhost`、`127.0.0.1`和`::1`，拒绝内嵌账号密码、查询参数及片段。服务地址实际改变时清除旧JWT、角色、用户名和会话并要求重新登录，避免把A服务器令牌发送给B服务器；地址不变时不打断登录，fast/expert偏好继续保留。
 - 连接失败不再只返回技术异常或笼统`error`：登录、注册、聊天、附件、文件库、预览、工具箱、首次引导和设置页统一区分网络不可达、超时及TLS证书验证失败，显示中文可操作提示。快速/专家模式新增`chat_mode`本地持久化，重启和后续升级继续使用上次选择。
