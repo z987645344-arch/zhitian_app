@@ -83,9 +83,9 @@ class ApiService
       '⚠️ 证书验证失败，请确认服务地址使用有效的 HTTPS 证书';
   static const String timeoutErrorMessage = '⚠️ 请求超时，请稍后重试';
   // F36：与后端 config.MAX_UPLOAD_SIZE_MB 保持一致，改动时需同步。
-  // F37：换中文嵌入模型后向量化由约 61 切片/秒降到约 21，
-  // 故在 F36 的 2MB 基础上再下调到 1MB。
-  static const int maxUploadSizeMb = 1;
+  // 2026-08-11按用户体验反馈放宽到5MB；文档入库仍由后端2000切片上限
+  // 控制实际处理时长，聊天附件与工具箱只复用这里的体积预筛。
+  static const int maxUploadSizeMb = 5;
   static const int maxUploadSizeBytes = maxUploadSizeMb * 1024 * 1024;
 
   static String normalizeBackendUrl(String value) {

@@ -12,6 +12,11 @@ import 'package:zhitian_app/providers/chat_provider.dart';
 import 'package:zhitian_app/services/api_service.dart';
 
 void main() {
+  test('upload size constants stay aligned with the five megabyte contract', () {
+    expect(ApiService.maxUploadSizeMb, 5);
+    expect(ApiService.maxUploadSizeBytes, 5 * 1024 * 1024);
+  });
+
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() => SharedPreferences.setMockInitialValues({}));

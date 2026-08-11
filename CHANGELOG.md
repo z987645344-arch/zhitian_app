@@ -1,5 +1,9 @@
 # zhitian_app CHANGELOG
 
+## 2026-08-11 文件体积预筛统一放宽到5MB
+- `ApiService.maxUploadSizeMb/maxUploadSizeBytes`由1MB同步调整为5MB，聊天附件与工具箱继续共用同一常量，不形成两套客户端限制；后端文档入库仍以2,000切片限制实际处理时长，客户端体积值只负责请求前预筛。
+- 新增共享常量断言防止三端再次脱节；`flutter analyze --no-pub`无问题，完整`flutter test --no-pub`为`45 tests passed`。
+
 ## 2026-08-09 Windows 3.0.0安装包与v3.0发布标签补齐
 - 本机Inno Setup 6.7.3命令行编译器可用，但`iscc`尚未加入当前PATH；通过`C:\Program Files (x86)\Inno Setup 6\ISCC.exe /?`真实确认编译器。标准安装目录未附带脚本所需的`ChineseSimplified.isl`，本轮使用Inno Setup官方`is-6_7_3`源码中的简体中文消息文件，经标准输入编译方式保持既有中文安装流程，未改动安装器源码或应用功能。
 - 重新执行`flutter build windows --release --no-pub`成功，包内`zhitian.exe`的`FileVersion`和`ProductVersion`均为`3.0.0+300`；随后由`packaging/windows_installer.iss`成功生成`dist/zhitian-windows-setup-3.0.0.exe`，文件大小`11,506,567`字节，SHA-256=`539D49812A9CF97B954C33D11654DFB855C5027F427AFC70DA53373C438F5481`。安装器自身`ProductVersion`为`3.0.0`，与Inno Setup版本格式一致。
