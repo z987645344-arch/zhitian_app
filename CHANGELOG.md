@@ -217,3 +217,7 @@
 - **标题乱码根治**：`main.cpp`为UTF-8无BOM，而Runner原先没有MSVC `/utf-8`，导致`L"知天"`按CP936编译成`鐭ゅぉ`；`windows/runner/CMakeLists.txt`现对Runner启用`/utf-8`。新Debug/Release EXE内正确“知天”各2处、错误字符串0处，隐藏启动后的Win32真实窗口标题为“知天”，版本资源仍为`3.0.0+300`。
 - **安装器可复现**：Inno Setup 6.7.3默认不含`ChineseSimplified.isl`，旧脚本依赖构建机额外文件；现固定引入其官方`is-6_7_3`标签翻译到`packaging/`并改用项目内路径。新`dist/zhitian-windows-setup-3.0.0.exe`为11,508,985字节，SHA-256=`896D2013AE956970D806C69A201D4384309414CE6C2FE0DFE9FCB34C01AC4065`。
 - **回归**：`flutter analyze --no-pub`无问题，完整`flutter test --no-pub`为`44 tests passed`（原42项）；Debug与Release构建、Inno安装包编译均成功。验证过程没有改写用户SharedPreferences，旧地址仍由用户在新入口中自行确认修改。
+
+## 2026-08-15 Flutter版本源对齐v3.2
+- `pubspec.yaml`由`3.0.0+300`更新为`3.2.0+320`；Inno Setup默认`AppVersion`同步为`3.2.0+320`，新输出基名为`zhitian-windows-setup-3.2.0`。安装器暂仍独立维护版本常量，已留下后续从pubspec自动读取的明确任务注释。
+- `flutter analyze --no-pub`返回0且无问题。本轮只统一源码版本源，没有重新构建或覆盖已验证的3.0.0安装包；下次正式发布安装包时再以新版本生成产物并记录哈希。

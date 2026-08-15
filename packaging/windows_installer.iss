@@ -1,9 +1,10 @@
 #ifndef MyAppVersion
-  #define MyAppVersion "3.0.0"
+  ; 待完成任务：目前独立硬编码维护，未来应考虑从pubspec.yaml自动读取版本号，避免多处维护。
+  #define MyAppVersion "3.2.0+320"
 #endif
 
 #ifndef MyOutputBaseFilename
-  #define MyOutputBaseFilename "zhitian-windows-setup-3.0.0"
+  #define MyOutputBaseFilename "zhitian-windows-setup-3.2.0"
 #endif
 
 #define MyAppName "知天"
