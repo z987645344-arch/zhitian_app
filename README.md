@@ -2,14 +2,14 @@
 
 [![CI](https://github.com/z987645344-arch/zhitian_app/actions/workflows/ci.yml/badge.svg)](https://github.com/z987645344-arch/zhitian_app/actions/workflows/ci.yml)
 ![Flutter](https://img.shields.io/badge/Flutter-Windows-02569B?logo=flutter&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-27%20passed-2E7D32)
-![Release](https://img.shields.io/badge/release-v1.9-B87333)
+![Tests](https://img.shields.io/badge/tests-45%20passed-2E7D32)
+![Release](https://img.shields.io/badge/release-v3.2-B87333)
 
 知天 Windows 客户端是 [知天 Agent Platform](https://github.com/z987645344-arch/zhitian) 的主要用户界面。它不是简单的聊天壳：知识库引用、附件阅读、文件生成与转换、个人文件库、历史会话和 fast/expert 能力分层都已经形成可操作的桌面工作台。
 
 ## 产品体验
 
-- **三栏工作台**：左侧会话与全局导航，中间专注对话，右侧展示模式和工具状态；窄窗口自动收缩。
+- **双区工作台**：左侧集中会话与全局导航，主区专注对话并在顶部显示模式；窄窗口自动收缩导航栏。
 - **快速 / 专家模式**：fast 面向日常上下文与知识库问答；expert 开启联网搜索、任务分解、文件生成/转换和决策理由。
 - **可验证回答**：流式输出支持 citations，助手消息可展开查看引用来源；expert 展示本轮路由理由。
 - **聊天附件**：支持多文件选择、上传状态、纯附件发送和历史附件 chip 回显。
@@ -30,7 +30,7 @@
 | 对话内附件转换 |  | ✓ |
 | 决策理由展示 |  | ✓ |
 
-fast 路径最多进行两次模型调用，能力边界由后端工具集合保证，而不是仅在界面上隐藏入口。
+fast路径无工具时只进行一次模型调用，文件清单等工具路径通常两次，知识库检索在证据选择与回答生成完整执行时最多三次。能力边界由后端工具集合保证，而不是仅在界面上隐藏入口。
 
 ## 客户端架构
 
@@ -52,7 +52,7 @@ flowchart LR
 | `lib/providers/` | 会话、消息、模式和附件上传状态 |
 | `lib/services/` | JWT API、multipart、SSE 解析和错误分类 |
 | `lib/models/` | 消息、引用、会话、附件、文件与转换结果模型 |
-| `lib/theme/` | Bronze Intelligence 视觉令牌与全局主题 |
+| `lib/theme/` | 暖灰白、蓝灰点缀的舒缓办公视觉令牌与全局主题 |
 | `test/` | API 序列化、Provider 状态和关键 Widget 交互测试 |
 
 ## 快速运行
@@ -71,10 +71,11 @@ flutter pub get
 flutter run -d windows
 ```
 
-首次启动后，在引导页确认后端地址。Docker Compose 环境填写
-`http://localhost/api`；只有明确直接运行本机非容器后端时才填写
-`http://localhost:8000`。登录和注册页均提供“服务器设置”入口，地址失效时
-无需先登录即可修改。
+首次启动后，在引导页确认后端地址。客户端与本地Docker Compose运行在同一台机器、
+且部署仓库`SERVER_PUBLIC_IP=127.0.0.1`时填写`http://localhost/api`；只有明确直接运行
+本机非容器后端时才填写`http://localhost:8000`。远程云端部署必须填写实际HTTPS域名
+及`/api`前缀，不能把服务器写成localhost。登录和注册页均提供“服务器设置”入口，
+地址失效时无需先登录即可修改。
 
 ## 推荐评审路径
 
@@ -88,7 +89,7 @@ flutter run -d windows
 ## 质量证据
 
 - `flutter analyze`：无问题。
-- 客户端自动化测试：**27 tests passed**。
+- 客户端最近完整自动化回归：**45 tests passed**。
 - Windows Release 构建已验证。
 - GitHub Actions 在每次 push/PR 执行 `flutter pub get`、`flutter analyze` 和 `flutter test`。
 
