@@ -227,3 +227,9 @@
 - 原第 27 行只有 `.env`，`.env.bak-1`、`.env.local` 这类衍生名**不被忽略**。在其紧下方补 `.env.*` 与 `!.env.example` 两行，与 `zhitian-deploy` 写法统一；Flutter 分组内其余规则未改动。
 - 不做路径锚定，规则在任意子目录同样生效；防的正是「在仓库目录里建 `.env` 备份」这一真实场景（2026-08-16 曾在服务器上产生 4 个含真实密钥的 `.env` 备份，已移出仓库）。
 - 实测以 `git check-ignore` 为准：`.env`、`.env.bak-1`、`.env.local` 均被忽略；临时落盘 `.env.example` 后 `git status` 显示为 `??` 未跟踪、未被忽略，测试文件已删除。
+
+## 2026-08-18 放宽 `.gitignore` 的模板否定规则为 `!.env*.example`
+
+- 上一轮加入的 `!.env.example` 只放行恰好同名的文件，`.env.local.example`、`.env.production.example` 这类模板会命中 `.env.*` 被静默忽略——提交时无声排除、diff 与 CI 都不报异常。本仓库改为 `!.env*.example`，只动这一行（1 增 1 删），Flutter 分组其余规则未动。
+- 缺陷由知了hub 执行者在本机 Compose 验证时真实撞上（新建的 `.env.local.example` 差点消失），按「两个项目共同遵守的规则必须同时写进两份」四个仓库同批跟上。
+- 落盘探针实测 7 项全过：`.env`、`.env.local`、`.env.bak-1`、`.env.production`、`lib/.env` 归 `!!`；`.env.example` 与 `.env.local.example` 均归 `??` 可被跟踪。实测口径按手册第十一章：不看退出码、用未跟踪探针文件加 `git status --ignored` 落盘判定。 探针已全部清理，仓库只剩 `.gitignore` 一处改动。
