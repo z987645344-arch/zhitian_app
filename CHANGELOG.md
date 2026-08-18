@@ -221,3 +221,9 @@
 ## 2026-08-15 Flutter版本源对齐v3.2
 - `pubspec.yaml`由`3.0.0+300`更新为`3.2.0+320`；Inno Setup默认`AppVersion`同步为`3.2.0+320`，新输出基名为`zhitian-windows-setup-3.2.0`。安装器暂仍独立维护版本常量，已留下后续从pubspec自动读取的明确任务注释。
 - `flutter analyze --no-pub`返回0且无问题。本轮只统一源码版本源，没有重新构建或覆盖已验证的3.0.0安装包；下次正式发布安装包时再以新版本生成产物并记录哈希。
+
+## 2026-08-18 补 `.gitignore` 的 env 衍生文件规则
+
+- 原第 27 行只有 `.env`，`.env.bak-1`、`.env.local` 这类衍生名**不被忽略**。在其紧下方补 `.env.*` 与 `!.env.example` 两行，与 `zhitian-deploy` 写法统一；Flutter 分组内其余规则未改动。
+- 不做路径锚定，规则在任意子目录同样生效；防的正是「在仓库目录里建 `.env` 备份」这一真实场景（2026-08-16 曾在服务器上产生 4 个含真实密钥的 `.env` 备份，已移出仓库）。
+- 实测以 `git check-ignore` 为准：`.env`、`.env.bak-1`、`.env.local` 均被忽略；临时落盘 `.env.example` 后 `git status` 显示为 `??` 未跟踪、未被忽略，测试文件已删除。
