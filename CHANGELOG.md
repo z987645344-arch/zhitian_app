@@ -253,7 +253,8 @@
 
 ## 2026-09-13 存档：v3.3 覆盖 v3.2.1 之后的暗色组件设计与本条存档
 
-- 覆盖 2 个提交：`9337832` 统一 Windows 客户端暗色组件与阅读层级（22 文件 +574/-264），以及本条存档提交（pubspec 升至 `3.3.0+330`）。含用户可见行为变化，按两段式。
+- 覆盖 4 个提交：`9337832` 统一 Windows 客户端暗色组件与阅读层级（22 文件 +574/-264）、`6d86e5e` 存档条目与 pubspec 升至 `3.3.0+330`、`f0cc4b4` 为连接设置页的高级说明补透明 Material 绘制面，以及本条修正提交。含用户可见行为变化，按两段式。
+- **CI 曾红一次，已修**：`6d86e5e` 的 CI（最新 stable）6 项失败，全是渲染连接设置页的测试。成因是本批把说明改成 `ExpansionTile`（内部 `ListTile`）而它被认证卡片的带背景色容器包住，新版 Flutter 断言抛异常；实施方本机 3.41.6 不触发故本机 49/49 绿。修法按断言建议套 `Material(type: transparency)`，`git diff -w` 核为仅 5 行包裹、内容未动。修正提交 CI `34741769539` success，**最新 stable 上 49/49**——这次本机绿 CI 红的教训：涉及 Flutter 的验收要在 CI 同版本上跑。
 - 验证存档方独立核到的：`lib/services/api_service.dart` 与 v3.2.1 逐字节相同，`services/` 零改动；无新依赖；测试无删除、新增 3；`models/message.dart` 仅新增可选字段 `displayError`，`chat_provider.dart` 将错误从拼入正文改为设独立字段、请求逻辑未动；`main.dart` 仅 light→dark；无主机名。flutter test 未由验证方重跑，实施方实跑 45→49、失败 0。
 - 一处待知天指挥师确认：`chat_provider` 新代码仅在「最后一条是流式中的助手消息」时写入 `displayError`，否则错误静默丢失；旧 `appendChunk` 的隐含假设可能相同，但值得核。
 - 未验证：Release、安装器、真实服务与权限链、读屏；未补 `tool_status`/`request_status` 显示。
