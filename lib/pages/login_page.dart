@@ -116,7 +116,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return AuthShell(
       title: '安全登录',
-      subtitle: '使用已获准的企业邮箱账号进入工作台。',
+      subtitle: '使用个人账号登录，继续对话并查看文件。',
       footer: Column(
         children: [
           Row(
@@ -160,7 +160,7 @@ class _LoginPageState extends State<LoginPage> {
             textInputAction: TextInputAction.next,
             style: const TextStyle(fontSize: 14),
             decoration: authInputDecoration(
-              hintText: 'name@company.com',
+              hintText: '输入邮箱地址',
               icon: Icons.mail_outline,
             ),
             onSubmitted: (_) => FocusScope.of(context).nextFocus(),
@@ -208,7 +208,7 @@ class _LoginPageState extends State<LoginPage> {
                     dimension: 18,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Colors.white,
+                      color: AppColors.onPrimary,
                     ),
                   )
                 : const Text('登录'),

@@ -50,7 +50,7 @@ class ZhitianApp extends StatelessWidget {
       child: MaterialApp(
         title: '知天',
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.light,
+        theme: AppTheme.dark,
         home: hasConfiguredBackend
             ? (isLoggedIn ? const ChatPage() : const LoginPage())
             : const BackendSetupPage(nextPage: LoginPage()),

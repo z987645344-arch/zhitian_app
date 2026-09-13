@@ -365,7 +365,11 @@ class ChatProvider extends ChangeNotifier {
         }
       }
     } catch (e) {
-      appendChunk('⚠️ 发生错误：${_briefError(e)}');
+      if (_messages.isNotEmpty &&
+          _messages.last.role == MessageRole.assistant &&
+          _messages.last.isStreaming) {
+        _messages.last.displayError = ApiService.userMessageFor(e);
+      }
     }
 
     finishStreaming();

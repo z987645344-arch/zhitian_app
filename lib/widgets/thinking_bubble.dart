@@ -18,7 +18,7 @@ class ThinkingBubble extends StatelessWidget {
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(16),
               topRight: Radius.circular(16),
-              bottomLeft: Radius.circular(6),
+              bottomLeft: Radius.circular(AppRadii.control),
               bottomRight: Radius.circular(16),
             ),
             border: Border.all(color: AppColors.border),
@@ -64,6 +64,17 @@ class _JumpingDotsState extends State<_JumpingDots>
       vsync: this,
       duration: const Duration(milliseconds: 900),
     )..repeat();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller.stop();
+      _controller.value = 0;
+    } else if (!_controller.isAnimating) {
+      _controller.repeat();
+    }
   }
 
   @override

@@ -111,14 +111,14 @@ void main() {
     expect(service.sentEmails, ['user@example.test']);
     expect(find.text('验证码已发送，请查收邮箱'), findsOneWidget);
     // 后端customer_register冷却为180秒，按钮进入倒计时且不可再次点击
-    expect(find.text('180s'), findsOneWidget);
+    expect(find.text('180秒'), findsOneWidget);
     final button = tester.widget<OutlinedButton>(
       find.byKey(const Key('register_send_code')),
     );
     expect(button.onPressed, isNull);
 
     await tester.pump(const Duration(seconds: 1));
-    expect(find.text('179s'), findsOneWidget);
+    expect(find.text('179秒'), findsOneWidget);
 
     // 卸载页面触发dispose，取消倒计时Timer
     await tester.pumpWidget(const SizedBox());
@@ -196,7 +196,7 @@ void main() {
     expect(provider.sessionId, isNot(oldSessionId));
     expect(provider.isThinking, isFalse);
     expect(provider.isSending, isFalse);
-    expect(find.text('今天需要了解什么？'), findsOneWidget);
+    expect(find.text('从一个问题开始。'), findsOneWidget);
   });
 
   testWidgets('chat mode defaults to fast and switches to expert', (
@@ -243,7 +243,7 @@ void main() {
 
       await tester.tap(find.text('知识问答'));
       await tester.pumpAndSettle();
-      expect(find.text('今天需要了解什么？'), findsOneWidget);
+      expect(find.text('从一个问题开始。'), findsOneWidget);
     },
   );
 
@@ -460,7 +460,7 @@ void main() {
     expect(memoryService.clearedSessionId, oldSessionId);
     expect(provider.sessionId, isNot(oldSessionId));
     expect(provider.messages, isEmpty);
-    expect(find.text('暂无历史记录'), findsOneWidget);
+    expect(find.text('这里还没有历史对话。开始一次对话后，可回来继续。'), findsOneWidget);
   });
 
   testWidgets('history session can be renamed and fully deleted', (
@@ -492,7 +492,7 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, '删除'));
     await tester.pumpAndSettle();
     expect(memoryService.deletedSessionId, 'managed-session');
-    expect(find.text('暂无历史记录'), findsOneWidget);
+    expect(find.text('这里还没有历史对话。开始一次对话后，可回来继续。'), findsOneWidget);
     expect(provider.sessionId, isNot('managed-session'));
   });
 }

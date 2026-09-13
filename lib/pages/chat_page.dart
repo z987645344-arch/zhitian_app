@@ -312,7 +312,9 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   bool _shouldShowMessage(Message message) =>
-      message.content.isNotEmpty || message.attachmentIds.isNotEmpty;
+      message.content.isNotEmpty ||
+      message.attachmentIds.isNotEmpty ||
+      message.displayError != null;
 }
 
 class _LeftPanel extends StatelessWidget {
@@ -371,6 +373,9 @@ class _LeftPanel extends StatelessWidget {
               if (compact)
                 IconButton.filled(
                   tooltip: '新建对话',
+                  style: IconButton.styleFrom(
+                    foregroundColor: AppColors.onPrimary,
+                  ),
                   onPressed: onNewChat,
                   icon: const Icon(Icons.add_comment),
                 )
@@ -433,7 +438,7 @@ class _LeftPanel extends StatelessWidget {
                       ? const Padding(
                           padding: EdgeInsets.all(10),
                           child: Text(
-                            '暂无会话',
+                            '新对话将保存在这里',
                             style: TextStyle(
                               color: AppColors.textMuted,
                               fontSize: 12,
@@ -485,12 +490,17 @@ class _Brand extends StatelessWidget {
               height: 38,
               decoration: BoxDecoration(
                 color: AppColors.primary,
-                borderRadius: BorderRadius.circular(9),
+                shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.auto_awesome,
-                color: Colors.white,
-                size: 20,
+              child: const Center(
+                child: Text(
+                  '知',
+                  style: TextStyle(
+                    color: AppColors.onPrimary,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ),
             if (!compact) ...[
@@ -542,10 +552,10 @@ class _NavItem extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 4),
       child: Material(
         color: selected ? AppColors.primaryContainer : Colors.transparent,
-        borderRadius: BorderRadius.circular(7),
+        borderRadius: BorderRadius.circular(AppRadii.control),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(7),
+          borderRadius: BorderRadius.circular(AppRadii.control),
           child: SizedBox(
             height: 42,
             child: Row(
@@ -612,10 +622,10 @@ class _SessionLinkState extends State<_SessionLink> {
   Widget build(BuildContext context) {
     return Material(
       color: widget.selected ? AppColors.surfaceContainer : Colors.transparent,
-      borderRadius: BorderRadius.circular(7),
+      borderRadius: BorderRadius.circular(AppRadii.control),
       child: InkWell(
         onTap: widget.onTap,
-        borderRadius: BorderRadius.circular(7),
+        borderRadius: BorderRadius.circular(AppRadii.control),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
           child: Row(
@@ -693,7 +703,7 @@ class _AccountTile extends StatelessWidget {
             : '个人账号';
         return InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadii.control),
           child: Padding(
             padding: EdgeInsets.all(compact ? 7 : 8),
             child: Row(
@@ -761,6 +771,7 @@ class _WorkspaceHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var title = '新对话';
+    final compact = MediaQuery.sizeOf(context).width < 600;
     for (final session in provider.sessions) {
       if (session.sessionId == provider.sessionId) {
         title = session.visibleTitle;
@@ -768,88 +779,95 @@ class _WorkspaceHeader extends StatelessWidget {
       }
     }
     return Container(
-      height: 68,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      height: compact ? 112 : 68,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: const BoxDecoration(
         color: AppColors.surface,
         border: Border(bottom: BorderSide(color: AppColors.border)),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
+      child: LayoutBuilder(
+        builder: (context, constraints) => Wrap(
+          spacing: 12,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            SizedBox(
+              width: compact
+                  ? constraints.maxWidth
+                  : constraints.maxWidth - 232,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  provider.mode == 'expert' ? '专家代理正在工作' : '快速助手已就绪',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppColors.textMuted,
+                  const SizedBox(height: 2),
+                  Text(
+                    provider.mode == 'expert' ? '专家模式 · 适合复杂任务' : '快速模式 · 日常问答',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textMuted,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          if (showModeSelector) ...[
-            SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(value: 'fast', label: Text('快速')),
-                ButtonSegment(value: 'expert', label: Text('专家')),
-              ],
-              selected: {provider.mode},
-              onSelectionChanged: provider.isSending
-                  ? null
-                  : (selection) => provider.setMode(selection.first),
-              showSelectedIcon: false,
-              style: const ButtonStyle(visualDensity: VisualDensity.compact),
+            if (showModeSelector) ...[
+              SegmentedButton<String>(
+                segments: const [
+                  ButtonSegment(value: 'fast', label: Text('快速')),
+                  ButtonSegment(value: 'expert', label: Text('专家')),
+                ],
+                selected: {provider.mode},
+                onSelectionChanged: provider.isSending
+                    ? null
+                    : (selection) => provider.setMode(selection.first),
+                showSelectedIcon: false,
+                style: const ButtonStyle(visualDensity: VisualDensity.compact),
+              ),
+            ],
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: provider.isSending
+                    ? AppColors.surfaceContainer
+                    : AppColors.surfaceLow,
+                border: Border.all(color: AppColors.border),
+                borderRadius: BorderRadius.circular(AppRadii.control),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: BoxDecoration(
+                      color: provider.isSending
+                          ? AppColors.primary
+                          : AppColors.success,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 7),
+                  Text(
+                    provider.isSending ? '处理中' : '就绪',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(width: 12),
           ],
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: provider.isSending
-                  ? AppColors.surfaceContainer
-                  : AppColors.surfaceLow,
-              border: Border.all(color: AppColors.border),
-              borderRadius: BorderRadius.circular(7),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 7,
-                  height: 7,
-                  decoration: BoxDecoration(
-                    color: provider.isSending
-                        ? AppColors.primary
-                        : AppColors.success,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 7),
-                Text(
-                  provider.isSending ? '处理中' : '在线',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -869,22 +887,24 @@ class _EmptyState extends StatelessWidget {
             height: 48,
             decoration: BoxDecoration(
               color: AppColors.primary,
-              borderRadius: BorderRadius.circular(9),
+              borderRadius: BorderRadius.circular(AppRadii.control),
             ),
             child: const Icon(
               Icons.auto_awesome_outlined,
-              color: Colors.white,
+              color: AppColors.onPrimary,
               size: 24,
             ),
           ),
           const SizedBox(height: 18),
           const Text(
-            '今天需要了解什么？',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+            '从一个问题开始。',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 32, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           const Text(
             '可以检索企业知识、阅读本轮附件，或处理本地文件',
+            textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13, color: AppColors.textMuted),
           ),
         ],

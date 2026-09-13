@@ -69,6 +69,7 @@ class Message {
   String content;
   bool isStreaming;
   String? reasoning;
+  String? displayError;
   List<Citation> citations;
   List<String> attachmentIds;
   List<String> attachmentFilenames;

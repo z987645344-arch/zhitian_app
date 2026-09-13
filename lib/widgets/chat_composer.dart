@@ -61,10 +61,10 @@ class ChatComposer extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surface,
           border: Border.all(color: AppColors.border),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppRadii.control),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x0D252A2E),
+              color: AppColors.shadow,
               blurRadius: 20,
               offset: Offset(0, 8),
             ),
@@ -102,6 +102,22 @@ class ChatComposer extends StatelessWidget {
                     },
                   ),
                 ),
+              for (final attachment in pendingAttachments)
+                if (attachment.status == AttachmentUploadStatus.failed)
+                  Semantics(
+                    liveRegion: true,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Text(
+                        '${attachment.filename}：上传失败。${attachment.errorMessage ?? "请检查网络或文件大小"}。移除后可重新添加。',
+                        style: const TextStyle(
+                          color: AppColors.error,
+                          fontSize: 13,
+                          height: 1.5,
+                        ),
+                      ),
+                    ),
+                  ),
               ValueListenableBuilder<TextEditingValue>(
                 valueListenable: controller,
                 builder: (context, value, _) {
@@ -124,7 +140,9 @@ class ChatComposer extends StatelessWidget {
                         child: DecoratedBox(
                           decoration: BoxDecoration(
                             color: AppColors.surface,
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(
+                              AppRadii.control,
+                            ),
                           ),
                           child: TextField(
                             controller: controller,
@@ -158,7 +176,7 @@ class ChatComposer extends StatelessWidget {
                             tooltip: '发送',
                             style: IconButton.styleFrom(
                               backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
+                              foregroundColor: AppColors.onPrimary,
                             ),
                             onPressed: canSend ? onSend : null,
                             icon: isSending
@@ -166,7 +184,7 @@ class ChatComposer extends StatelessWidget {
                                     dimension: 18,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      color: Colors.white,
+                                      color: AppColors.onPrimary,
                                     ),
                                   )
                                 : const Icon(Icons.send_rounded),

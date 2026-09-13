@@ -93,7 +93,7 @@ class _FilePreviewPageState extends State<FilePreviewPage> {
                           decoration: BoxDecoration(
                             color: AppColors.surface,
                             border: Border.all(color: AppColors.border),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(AppRadii.card),
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(24),

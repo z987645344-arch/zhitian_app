@@ -278,7 +278,7 @@ class _ToolboxPageState extends State<ToolboxPage> {
                   decoration: BoxDecoration(
                     color: AppColors.surface,
                     border: Border.all(color: AppColors.border),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(AppRadii.card),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -294,7 +294,9 @@ class _ToolboxPageState extends State<ToolboxPage> {
                                 height: 48,
                                 decoration: BoxDecoration(
                                   color: AppColors.primaryContainer,
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadii.card,
+                                  ),
                                 ),
                                 child: const Icon(
                                   Icons.file_upload_outlined,

@@ -158,7 +158,9 @@ class _FilesPageState extends State<FilesPage> {
                       if (_files.isEmpty)
                         const Padding(
                           padding: EdgeInsets.all(32),
-                          child: Center(child: Text('暂无文件')),
+                          child: Center(
+                            child: Text('这里还没有文件。上传附件、生成或转换文件后，可在这里统一管理。'),
+                          ),
                         ),
                       for (final file in _files)
                         _FileRow(
@@ -197,7 +199,7 @@ class _FileRow extends StatelessWidget {
     return Container(
       color: AppColors.surface,
       padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
-      margin: const EdgeInsets.only(bottom: 1),
+      margin: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
           const Icon(
@@ -218,6 +220,7 @@ class _FileRow extends StatelessWidget {
                 Text(
                   '${_sourceLabel(file.sourceType)} · ${_sizeLabel(file.sizeBytes)}',
                   style: const TextStyle(
+                    fontFamily: 'Consolas',
                     fontSize: 12,
                     color: AppColors.textMuted,
                   ),
@@ -249,7 +252,7 @@ class _FileRow extends StatelessWidget {
             IconButton(
               tooltip: '删除',
               onPressed: onDelete,
-              icon: const Icon(Icons.delete_outline),
+              icon: const Icon(Icons.delete_outline, color: AppColors.error),
             ),
           ],
         ],

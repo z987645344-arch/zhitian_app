@@ -114,7 +114,7 @@ class _HistoryPageState extends State<HistoryPage> {
         physics: const AlwaysScrollableScrollPhysics(),
         children: const [
           SizedBox(height: 180),
-          Center(child: Text('暂无历史记录')),
+          Center(child: Text('这里还没有历史对话。开始一次对话后，可回来继续。')),
         ],
       );
     }
@@ -285,10 +285,10 @@ class _SessionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: selected ? AppColors.primaryContainer : AppColors.surface,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppRadii.card),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadii.card),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(

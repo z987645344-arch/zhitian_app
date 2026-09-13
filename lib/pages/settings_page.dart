@@ -72,7 +72,7 @@ class _SettingsPageState extends State<SettingsPage> {
       }
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('后端地址已保存')));
+      ).showSnackBar(const SnackBar(content: Text('服务地址已保存')));
     } catch (error) {
       if (mounted) {
         setState(() => _addressError = ApiService.userMessageFor(error));
@@ -126,7 +126,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   padding: const EdgeInsets.fromLTRB(28, 28, 28, 40),
                   children: [
                     _SettingsCard(
-                      title: '后端连接',
+                      title: '01 / 服务连接',
                       children: [
                         const Text(
                           '仅连接你信任的企业服务地址。远程服务建议使用 HTTPS，保存前先测试连接。',
@@ -143,7 +143,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           keyboardType: TextInputType.url,
                           style: const TextStyle(fontSize: 15),
                           decoration: _inputDecoration(
-                            label: '后端地址',
+                            label: '服务地址',
                             hint: ApiService.defaultBackendUrl,
                             icon: Icons.dns_outlined,
                           ),
@@ -164,9 +164,11 @@ class _SettingsPageState extends State<SettingsPage> {
                             FilledButton.icon(
                               style: FilledButton.styleFrom(
                                 backgroundColor: AppColors.primary,
-                                foregroundColor: Colors.white,
+                                foregroundColor: AppColors.onPrimary,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadii.control,
+                                  ),
                                 ),
                               ),
                               onPressed: _isSaving ? null : _saveBackendUrl,
@@ -175,7 +177,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                       dimension: 18,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        color: Colors.white,
+                                        color: AppColors.onPrimary,
                                       ),
                                     )
                                   : const Icon(Icons.save_outlined),
@@ -208,11 +210,11 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                     const SizedBox(height: 16),
                     _SettingsCard(
-                      title: '账号',
+                      title: '02 / 登录状态',
                       children: [
                         TextButton.icon(
                           style: TextButton.styleFrom(
-                            foregroundColor: AppColors.text,
+                            foregroundColor: AppColors.error,
                             alignment: Alignment.centerLeft,
                           ),
                           onPressed: _logout,
@@ -241,15 +243,15 @@ class _SettingsPageState extends State<SettingsPage> {
       filled: true,
       fillColor: AppColors.surface,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadii.control),
         borderSide: const BorderSide(color: AppColors.border),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadii.control),
         borderSide: const BorderSide(color: AppColors.border),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadii.control),
         borderSide: const BorderSide(color: AppColors.primary),
       ),
     );
@@ -284,7 +286,7 @@ class _SettingsCard extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(AppRadii.control),
         border: Border.all(color: AppColors.border),
       ),
       child: Padding(
@@ -329,7 +331,7 @@ class _StatusBox extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadii.control),
         border: Border.all(color: color),
       ),
       child: Row(

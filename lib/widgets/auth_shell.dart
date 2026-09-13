@@ -79,14 +79,14 @@ class AuthShell extends StatelessWidget {
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: _formMaxWidth),
       child: Container(
-        padding: const EdgeInsets.all(30),
+        padding: EdgeInsets.all(compact ? AppSpace.field : AppSpace.section),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(9),
+          borderRadius: BorderRadius.circular(AppRadii.control),
           border: Border.all(color: AppColors.border),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x0F252A2E),
+              color: AppColors.shadow,
               blurRadius: 28,
               offset: Offset(0, 12),
             ),
@@ -125,7 +125,7 @@ class AuthShell extends StatelessWidget {
               title,
               style: const TextStyle(
                 color: AppColors.text,
-                fontSize: 24,
+                fontSize: 36,
                 fontWeight: FontWeight.w600,
                 height: 1.33,
                 letterSpacing: -0.4,
@@ -188,7 +188,7 @@ class AuthServerSettingsLink extends StatelessWidget {
           const Padding(
             padding: EdgeInsets.only(top: 4),
             child: Text(
-              '检测到旧的本机调试地址；使用 Compose 请改为 http://localhost/api',
+              '检测到旧的本机调试地址，请向管理员确认当前服务地址。',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: AppColors.error,
@@ -227,7 +227,7 @@ class _BrandPanel extends StatelessWidget {
       height: double.infinity,
       padding: const EdgeInsets.all(48),
       decoration: const BoxDecoration(
-        color: AppColors.primaryContainer,
+        color: AppColors.surfaceLow,
         border: Border(right: BorderSide(color: AppColors.border)),
       ),
       child: Column(
@@ -297,7 +297,7 @@ class _HighlightRow extends StatelessWidget {
           height: 32,
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.circular(7),
+            borderRadius: BorderRadius.circular(AppRadii.control),
             border: Border.all(color: AppColors.border),
           ),
           child: Icon(icon, size: 17, color: AppColors.primary),
@@ -351,12 +351,17 @@ class _BrandMark extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         color: AppColors.primary,
-        borderRadius: BorderRadius.circular(radius),
+        shape: BoxShape.circle,
       ),
-      child: Icon(
-        Icons.auto_awesome_outlined,
-        color: Colors.white,
-        size: iconSize,
+      child: Center(
+        child: Text(
+          '知',
+          style: TextStyle(
+            color: AppColors.onPrimary,
+            fontSize: iconSize,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ),
     );
   }
@@ -449,7 +454,7 @@ InputDecoration authInputDecoration({
 
 OutlineInputBorder _authBorder(Color color, {double width = 1}) {
   return OutlineInputBorder(
-    borderRadius: BorderRadius.circular(8),
+    borderRadius: BorderRadius.circular(AppRadii.control),
     borderSide: BorderSide(color: color, width: width),
   );
 }
@@ -469,7 +474,7 @@ class AuthMessage extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadii.control),
         border: Border.all(color: color.withValues(alpha: 0.28)),
       ),
       child: Row(

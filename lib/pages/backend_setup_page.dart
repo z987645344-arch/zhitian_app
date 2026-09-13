@@ -93,15 +93,17 @@ class _BackendSetupPageState extends State<BackendSetupPage> {
       title: '连接企业服务',
       subtitle: widget.returnToPrevious
           ? '修改后会立即使用新地址；地址变化时需要重新登录。'
-          : '首次使用需要设置后端地址，保存后可随时修改。',
+          : '填写管理员提供的服务地址，连接后即可登录。',
       onBack: widget.returnToPrevious
           ? () => Navigator.of(context).pop(false)
           : null,
       backLabel: '返回',
-      footer: const Column(
+      footer: const ExpansionTile(
+        tilePadding: EdgeInsets.zero,
+        title: Text('高级连接说明', style: TextStyle(fontSize: 13)),
         children: [
           Text(
-            'Compose 环境填写 http://localhost/api；直接运行本机后端才使用 :8000。',
+            '请完整保留管理员给出的协议、端口和路径；不同部署方式的地址可能不同。',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: AppColors.textMuted,
@@ -111,7 +113,7 @@ class _BackendSetupPageState extends State<BackendSetupPage> {
           ),
           SizedBox(height: 4),
           Text(
-            '远程服务必须使用 HTTPS；本机联调可使用 localhost 或 127.0.0.1。',
+            '远程连接必须使用 HTTPS。HTTP 仅适用于本机开发；不要据此修改企业服务地址。',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: AppColors.textMuted,
@@ -143,11 +145,11 @@ class _BackendSetupPageState extends State<BackendSetupPage> {
             filled: true,
             fillColor: AppColors.surface,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppRadii.control),
               borderSide: const BorderSide(color: AppColors.border),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppRadii.control),
               borderSide: const BorderSide(color: AppColors.border),
             ),
           ),
@@ -188,7 +190,7 @@ class _BackendSetupPageState extends State<BackendSetupPage> {
                     dimension: 18,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Colors.white,
+                      color: AppColors.onPrimary,
                     ),
                   )
                 : const Text('保存并继续'),
@@ -231,7 +233,7 @@ class _InlineMessage extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadii.control),
         border: Border.all(color: color),
       ),
       child: Row(

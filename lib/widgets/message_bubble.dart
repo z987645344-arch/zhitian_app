@@ -20,8 +20,8 @@ class _MessageBubbleState extends State<MessageBubble> {
   Widget build(BuildContext context) {
     final message = widget.message;
     final isUser = message.isUser;
-    final bubbleColor = isUser ? AppColors.primary : AppColors.surface;
-    final textColor = isUser ? Colors.white : AppColors.text;
+    final bubbleColor = isUser ? AppColors.primaryContainer : AppColors.surface;
+    const textColor = AppColors.text;
     final showCitations =
         !isUser && !message.isStreaming && message.citations.isNotEmpty;
     final showReasoning =
@@ -40,87 +40,128 @@ class _MessageBubbleState extends State<MessageBubble> {
                 ? CrossAxisAlignment.end
                 : CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 13,
-                ),
-                decoration: BoxDecoration(
-                  color: bubbleColor,
-                  borderRadius: BorderRadius.only(
-                    topLeft: const Radius.circular(9),
-                    topRight: const Radius.circular(9),
-                    bottomLeft: Radius.circular(isUser ? 9 : 3),
-                    bottomRight: Radius.circular(isUser ? 3 : 9),
-                  ),
-                  border: isUser ? null : Border.all(color: AppColors.border),
-                  boxShadow: isUser
-                      ? null
-                      : const [
-                          BoxShadow(
-                            color: Color(0x08252A2E),
-                            blurRadius: 10,
-                            offset: Offset(0, 3),
+              if (message.displayError != null)
+                Semantics(
+                  liveRegion: true,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(AppSpace.field),
+                    decoration: BoxDecoration(
+                      color: AppColors.errorContainer,
+                      border: Border.all(color: AppColors.error),
+                      borderRadius: BorderRadius.circular(AppRadii.control),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          '本次回答未完成',
+                          style: TextStyle(
+                            color: AppColors.error,
+                            fontWeight: FontWeight.w600,
                           ),
-                        ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (showReasoning) ...[
-                      Text(
-                        message.reasoning!,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textMuted,
-                          fontSize: 12,
-                          height: 1.3,
                         ),
-                      ),
-                      const SizedBox(height: 6),
-                    ],
-                    if (message.content.isNotEmpty)
-                      _BubbleText(
-                        content: message.content,
-                        color: textColor,
-                        showCursor: message.isStreaming,
-                      ),
-                    if (showAttachments) ...[
-                      if (message.content.isNotEmpty) const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: [
-                          for (final filename in attachmentLabels)
-                            Chip(
-                              avatar: Icon(
-                                Icons.attach_file,
-                                size: 15,
-                                color: isUser
-                                    ? Colors.white
-                                    : AppColors.primary,
-                              ),
-                              label: Text(filename),
-                              visualDensity: VisualDensity.compact,
-                              backgroundColor: isUser
-                                  ? Colors.white.withValues(alpha: 0.16)
-                                  : AppColors.surfaceLow,
-                              labelStyle: TextStyle(
-                                color: textColor,
-                                fontSize: 12,
-                              ),
-                              side: BorderSide(
-                                color: isUser
-                                    ? Colors.white54
-                                    : AppColors.border,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ],
+                        Text(
+                          message.displayError!,
+                          style: const TextStyle(
+                            color: AppColors.error,
+                            height: 1.6,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+              if (message.content.isNotEmpty ||
+                  showAttachments ||
+                  showReasoning)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 13,
+                  ),
+                  decoration: BoxDecoration(
+                    color: bubbleColor,
+                    borderRadius: BorderRadius.only(
+                      topLeft: const Radius.circular(AppRadii.card),
+                      topRight: const Radius.circular(AppRadii.card),
+                      bottomLeft: Radius.circular(
+                        isUser ? AppRadii.card : AppRadii.control,
+                      ),
+                      bottomRight: Radius.circular(
+                        isUser ? AppRadii.control : AppRadii.card,
+                      ),
+                    ),
+                    border: isUser ? null : Border.all(color: AppColors.border),
+                    boxShadow: isUser
+                        ? null
+                        : const [
+                            BoxShadow(
+                              color: AppColors.shadow,
+                              blurRadius: 10,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (showReasoning) ...[
+                        Text(
+                          message.reasoning!,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: AppColors.textMuted,
+                                fontSize: 12,
+                                height: 1.3,
+                              ),
+                        ),
+                        const SizedBox(height: 6),
+                      ],
+                      if (message.content.isNotEmpty)
+                        _BubbleText(
+                          content: message.content,
+                          color: textColor,
+                          showCursor: message.isStreaming,
+                        ),
+                      if (showAttachments) ...[
+                        if (message.content.isNotEmpty)
+                          const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            for (final filename in attachmentLabels)
+                              Chip(
+                                avatar: Icon(
+                                  Icons.attach_file,
+                                  size: 15,
+                                  color: AppColors.primary,
+                                ),
+                                label: Text(filename),
+                                visualDensity: VisualDensity.compact,
+                                backgroundColor: isUser
+                                    ? AppColors.onPrimary.withValues(
+                                        alpha: 0.16,
+                                      )
+                                    : AppColors.surfaceLow,
+                                labelStyle: TextStyle(
+                                  color: textColor,
+                                  fontSize: 12,
+                                ),
+                                side: BorderSide(
+                                  color: isUser
+                                      ? AppColors.border
+                                      : AppColors.border,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               if (showCitations)
                 _CitationPanel(
                   citations: message.citations,
@@ -182,14 +223,14 @@ class _CitationPanel extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: AppColors.surfaceLow,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadii.control),
           border: Border.all(color: AppColors.border),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             InkWell(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppRadii.control),
               onTap: onToggle,
               child: Padding(
                 padding: const EdgeInsets.symmetric(

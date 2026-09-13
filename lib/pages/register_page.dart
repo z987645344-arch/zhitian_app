@@ -177,7 +177,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   String get _sendCodeLabel {
-    if (_cooldownSeconds > 0) return '${_cooldownSeconds}s';
+    if (_cooldownSeconds > 0) return '$_cooldownSeconds秒';
     return '发送验证码';
   }
 
@@ -243,7 +243,7 @@ class _RegisterPageState extends State<RegisterPage> {
             textInputAction: TextInputAction.next,
             style: const TextStyle(fontSize: 14),
             decoration: authInputDecoration(
-              hintText: 'name@company.com',
+              hintText: '输入邮箱地址',
               icon: Icons.mail_outline,
             ),
           ),
@@ -348,7 +348,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     dimension: 18,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Colors.white,
+                      color: AppColors.onPrimary,
                     ),
                   )
                 : const Text('注册'),
