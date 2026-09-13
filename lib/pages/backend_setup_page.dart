@@ -98,30 +98,33 @@ class _BackendSetupPageState extends State<BackendSetupPage> {
           ? () => Navigator.of(context).pop(false)
           : null,
       backLabel: '返回',
-      footer: const ExpansionTile(
-        tilePadding: EdgeInsets.zero,
-        title: Text('高级连接说明', style: TextStyle(fontSize: 13)),
-        children: [
-          Text(
-            '请完整保留管理员给出的协议、端口和路径；不同部署方式的地址可能不同。',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: AppColors.textMuted,
-              fontSize: 12,
-              height: 1.5,
+      footer: const Material(
+        type: MaterialType.transparency,
+        child: ExpansionTile(
+          tilePadding: EdgeInsets.zero,
+          title: Text('高级连接说明', style: TextStyle(fontSize: 13)),
+          children: [
+            Text(
+              '请完整保留管理员给出的协议、端口和路径；不同部署方式的地址可能不同。',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 12,
+                height: 1.5,
+              ),
             ),
-          ),
-          SizedBox(height: 4),
-          Text(
-            '远程连接必须使用 HTTPS。HTTP 仅适用于本机开发；不要据此修改企业服务地址。',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: AppColors.textMuted,
-              fontSize: 12,
-              height: 1.5,
+            SizedBox(height: 4),
+            Text(
+              '远程连接必须使用 HTTPS。HTTP 仅适用于本机开发；不要据此修改企业服务地址。',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 12,
+                height: 1.5,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       children: [
         const Text(
