@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/z987645344-arch/zhitian_app/actions/workflows/ci.yml/badge.svg)](https://github.com/z987645344-arch/zhitian_app/actions/workflows/ci.yml)
 ![Flutter](https://img.shields.io/badge/Flutter-Windows-02569B?logo=flutter&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-45%20passed-2E7D32)
+![Tests](https://img.shields.io/badge/tests-49%20passed-2E7D32)
 ![Release](https://img.shields.io/badge/release-v3.2-B87333)
 
 知天 Windows 客户端是 [知天 Agent Platform](https://github.com/z987645344-arch/zhitian) 的主要用户界面。它不是简单的聊天壳：知识库引用、附件阅读、文件生成与转换、个人文件库、历史会话和 fast/expert 能力分层都已经形成可操作的桌面工作台。
@@ -52,7 +52,7 @@ flowchart LR
 | `lib/providers/` | 会话、消息、模式和附件上传状态 |
 | `lib/services/` | JWT API、multipart、SSE 解析和错误分类 |
 | `lib/models/` | 消息、引用、会话、附件、文件与转换结果模型 |
-| `lib/theme/` | 暖灰白、蓝灰点缀的舒缓办公视觉令牌与全局主题 |
+| `lib/theme/` | 深色背景、苔绿色强调色与 10/16/24 圆角令牌及全局主题 |
 | `test/` | API 序列化、Provider 状态和关键 Widget 交互测试 |
 
 ## 快速运行
@@ -89,7 +89,7 @@ flutter run -d windows
 ## 质量证据
 
 - `flutter analyze`：无问题。
-- 客户端最近完整自动化回归：**45 tests passed**。
+- 客户端最近完整自动化回归：**49 tests passed**。
 - Windows Release 构建已验证。
 - GitHub Actions 在每次 push/PR 执行 `flutter pub get`、`flutter analyze` 和 `flutter test`。
 
