@@ -92,9 +92,18 @@ class _MessageBubbleState extends State<MessageBubble> {
                         isUser ? AppRadii.control : AppRadii.card,
                       ),
                     ),
-                    border: isUser ? null : Border.all(color: AppColors.border),
+                    border: Border.all(
+                      color: isUser
+                          ? AppColors.primary.withValues(alpha: 0.35)
+                          : AppColors.border,
+                    ),
                     boxShadow: isUser
-                        ? null
+                        ? [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.12),
+                              blurRadius: 18,
+                            ),
+                          ]
                         : const [
                             BoxShadow(
                               color: AppColors.shadow,

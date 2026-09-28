@@ -266,4 +266,10 @@
 - `test/goldens/chat_page_mock.png` 当前未被任何测试引用（全仓检索 `matchesGoldenFile` / `chat_page_mock` 为 0），本轮不更新它；测试中也无颜色常量断言。
 - **证据**：本执行环境安装 Flutter 3.47.5 stable（与 CI 的 `channel: stable` 同源），`flutter analyze` **No issues found**，`flutter test` **49 passed**；本地 `pub get` 对 `pubspec.lock` 与 `analysis_options.yaml` 的自动改动已还原，不随本轮提交。
 - **未验证 / 不得视为完成**：Windows 真机渲染与安装器、真实服务下的对话流程、读屏；用户视觉验收。本环境无 Windows 桌面，未截图。
+- **完整改版与品牌头像（同轮追加）**：
+  - 新增 `lib/widgets/brand_avatar.dart`：`BrandAvatar` 在琥珀圆角底上显示 OC 头像，替换登录/注册品牌栏、窄窗口卡片头与对话页侧栏的圆形"知"字。头像为 128px WebP（约 7KB）以 base64 内嵌，**不新增 `pubspec.yaml` 资源声明**。
+  - `app_theme.dart` 新增 `AppDecor`（左上暖灯 / 左下暖灯径向渐变、琥珀辉光阴影），主按钮悬停时出现琥珀光晕。
+  - `auth_shell.dart`：整页暖灯背景、品牌栏左下暖光、表单卡片暖色渐变 + 辉光、要点图标改琥珀描边；品牌名加粗加大。删除不再使用的 `_BrandMark`。
+  - `chat_page.dart`：对话区暖灯背景、导航当前项指示条发光；`message_bubble.dart`：用户气泡琥珀描边与淡光晕。
+  - 证据：`flutter analyze` No issues found，`flutter test` **49 passed**；另用临时渲染测试（未提交）在 1280×800 下出图检查登录页、对话页与气泡。未改 Windows 启动图标（位于 `windows/`，不在本轮范围）。
 

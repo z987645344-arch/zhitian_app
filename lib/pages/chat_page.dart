@@ -10,6 +10,7 @@ import '../theme/app_theme.dart';
 import '../widgets/chat_composer.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/thinking_bubble.dart';
+import '../widgets/brand_avatar.dart';
 import 'files_page.dart';
 import 'history_page.dart';
 import 'settings_page.dart';
@@ -207,8 +208,11 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                   Expanded(
                     child: _section == _WorkspaceSection.chat
-                        ? ColoredBox(
-                            color: AppColors.background,
+                        ? DecoratedBox(
+                            decoration: const BoxDecoration(
+                              color: AppColors.background,
+                              gradient: AppDecor.lamp,
+                            ),
                             child: Column(
                               children: [
                                 _WorkspaceHeader(
@@ -485,24 +489,7 @@ class _Brand extends StatelessWidget {
       children: [
         Row(
           children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: Text(
-                  '知',
-                  style: TextStyle(
-                    color: AppColors.onPrimary,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
+            const BrandAvatar(size: 38),
             if (!compact) ...[
               const SizedBox(width: 10),
               const Column(
@@ -569,6 +556,14 @@ class _NavItem extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: AppColors.primary,
                     borderRadius: BorderRadius.circular(2),
+                    boxShadow: selected
+                        ? [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.6),
+                              blurRadius: 10,
+                            ),
+                          ]
+                        : null,
                   ),
                 ),
                 SizedBox(
