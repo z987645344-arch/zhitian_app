@@ -272,4 +272,5 @@
   - `auth_shell.dart`：整页暖灯背景、品牌栏左下暖光、表单卡片暖色渐变 + 辉光、要点图标改琥珀描边；品牌名加粗加大。删除不再使用的 `_BrandMark`。
   - `chat_page.dart`：对话区暖灯背景、导航当前项指示条发光；`message_bubble.dart`：用户气泡琥珀描边与淡光晕。
   - 证据：`flutter analyze` No issues found，`flutter test` **49 passed**；另用临时渲染测试（未提交）在 1280×800 下出图检查登录页、对话页与气泡。未改 Windows 启动图标（位于 `windows/`，不在本轮范围）。
+- **剪影与按钮字体（同轮追加）**：`BrandSilhouette`（用户提供的纯黑剪影，128px PNG 约 6.6KB，base64 内嵌、按颜色着色）替换对话页空状态中央的星形图标，图标块由 48 放大到 56 并加辉光。主按钮、描边按钮、文字按钮与分段按钮的 `textStyle` 显式指定 `Segoe UI` + `Microsoft YaHei` 回退：`ButtonStyle.textStyle` 不继承主题 `fontFamily`，原先在缺少系统回退的环境里中文会显示为方块（渲染测试中"新建对话"复现为方块，修复后正常）。`flutter analyze` 无问题，`flutter test` 49 passed。
 

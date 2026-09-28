@@ -23,6 +23,11 @@ abstract final class AppColors {
   static const errorContainer = Color(0xFF2A1714);
 }
 
+/// 按钮文字样式不会继承主题 fontFamily，需显式指定中文字体回退，
+/// 否则在缺少回退的环境里中文可能显示为方块。
+const String _fontFamily = 'Segoe UI';
+const List<String> _fontFallback = ['Microsoft YaHei', 'sans-serif'];
+
 abstract final class AppTheme {
   static ThemeData get dark {
     const scheme = ColorScheme.dark(
@@ -38,12 +43,12 @@ abstract final class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      fontFamily: 'Segoe UI',
-      fontFamilyFallback: const ['Microsoft YaHei', 'sans-serif'],
+      fontFamily: _fontFamily,
+      fontFamilyFallback: _fontFallback,
       colorScheme: scheme,
       scaffoldBackgroundColor: AppColors.background,
       textTheme: baseText.apply(
-        fontFamily: 'Segoe UI',
+        fontFamily: _fontFamily,
         bodyColor: AppColors.text,
         displayColor: AppColors.text,
       ),
@@ -106,7 +111,11 @@ abstract final class AppTheme {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppRadii.control),
               ),
-              textStyle: const TextStyle(fontWeight: FontWeight.w600),
+              textStyle: const TextStyle(
+                fontFamily: _fontFamily,
+                fontFamilyFallback: _fontFallback,
+                fontWeight: FontWeight.w600,
+              ),
             ).copyWith(
               elevation: WidgetStateProperty.resolveWith(
                 (states) => states.contains(WidgetState.hovered) ? 6 : 0,
@@ -119,6 +128,10 @@ abstract final class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.text,
+          textStyle: const TextStyle(
+            fontFamily: _fontFamily,
+            fontFamilyFallback: _fontFallback,
+          ),
           minimumSize: const Size(0, 44),
           side: const BorderSide(color: AppColors.border),
           shape: RoundedRectangleBorder(
@@ -127,13 +140,25 @@ abstract final class AppTheme {
         ),
       ),
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          textStyle: const TextStyle(
+            fontFamily: _fontFamily,
+            fontFamilyFallback: _fontFallback,
+          ),
+        ),
       ),
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(foregroundColor: AppColors.textMuted),
       ),
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: ButtonStyle(
+          textStyle: const WidgetStatePropertyAll(
+            TextStyle(
+              fontFamily: _fontFamily,
+              fontFamilyFallback: _fontFallback,
+            ),
+          ),
           foregroundColor: WidgetStateProperty.resolveWith(
             (states) => states.contains(WidgetState.selected)
                 ? AppColors.text

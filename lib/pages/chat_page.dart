@@ -878,16 +878,16 @@ class _EmptyState extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 48,
-            height: 48,
+            width: 56,
+            height: 56,
             decoration: BoxDecoration(
               color: AppColors.primary,
               borderRadius: BorderRadius.circular(AppRadii.control),
+              boxShadow: AppDecor.glow(1.4),
             ),
-            child: const Icon(
-              Icons.auto_awesome_outlined,
-              color: AppColors.onPrimary,
-              size: 24,
+            child: const Padding(
+              padding: EdgeInsets.fromLTRB(8, 10, 8, 4),
+              child: BrandSilhouette(size: 40, color: AppColors.onPrimary),
             ),
           ),
           const SizedBox(height: 18),
