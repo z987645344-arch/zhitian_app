@@ -258,3 +258,12 @@
 - 验证存档方独立核到的：`lib/services/api_service.dart` 与 v3.2.1 逐字节相同，`services/` 零改动；无新依赖；测试无删除、新增 3；`models/message.dart` 仅新增可选字段 `displayError`，`chat_provider.dart` 将错误从拼入正文改为设独立字段、请求逻辑未动；`main.dart` 仅 light→dark；无主机名。flutter test 未由验证方重跑，实施方实跑 45→49、失败 0。
 - 一处待知天指挥师确认：`chat_provider` 新代码仅在「最后一条是流式中的助手消息」时写入 `displayError`，否则错误静默丢失；旧 `appendChunk` 的隐含假设可能相同，但值得核。
 - 未验证：Release、安装器、真实服务与权限链、读屏；未补 `tool_status`/`request_status` 显示。
+
+## 2026-09-28 候选（frontend/round-2）—— 配色与知了hub「Lamp & Node」对齐：中性黑灰 + 琥珀；未合并、未打标、未改版本号
+
+- `lib/theme/app_theme.dart`：仅替换 `AppColors` 的 18 个颜色值（背景 `#09090B`、表面 `#17171A`、主色琥珀 `#F3B35A`、按钮文字 `#17130D`、正文 `#ECECEE`、说明 `#A1A1AA`，成功/警告/错误同步提亮并压暗底色）。常量名、`AppTheme` 结构、`AppRadii`/`AppSpace`、字体（Segoe UI + 微软雅黑）均不变；`lib/pages/`、`lib/widgets/` 无颜色字面量，未改。
+- 未触碰 `lib/services/`、`lib/providers/`、`lib/models/`、`lib/constants/`、`windows/`、`packaging/` 与 `pubspec.yaml` 版本号。
+- `test/goldens/chat_page_mock.png` 当前未被任何测试引用（全仓检索 `matchesGoldenFile` / `chat_page_mock` 为 0），本轮不更新它；测试中也无颜色常量断言。
+- **证据**：本执行环境安装 Flutter 3.47.5 stable（与 CI 的 `channel: stable` 同源），`flutter analyze` **No issues found**，`flutter test` **49 passed**；本地 `pub get` 对 `pubspec.lock` 与 `analysis_options.yaml` 的自动改动已还原，不随本轮提交。
+- **未验证 / 不得视为完成**：Windows 真机渲染与安装器、真实服务下的对话流程、读屏；用户视觉验收。本环境无 Windows 桌面，未截图。
+

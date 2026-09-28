@@ -1,25 +1,26 @@
 import 'package:flutter/material.dart';
 
+/// Lamp & Node：与知了hub 网站一致的中性黑灰暗场，琥珀为唯一主色。
 abstract final class AppColors {
-  static const onPrimary = Color(0xFF20292E);
+  static const onPrimary = Color(0xFF17130D);
   static const shadow = Color(0x33000000);
-  static const background = Color(0xFF20292E);
-  static const surface = Color(0xFF29343A);
-  static const surfaceLow = Color(0xFF172025);
-  static const surfaceContainer = Color(0xFF3A4541);
-  static const surfaceHigh = Color(0xFF344047);
-  static const text = Color(0xFFEFF2F3);
-  static const textMuted = Color(0xFFB7C0C3);
-  static const primary = Color(0xFFB3B7A4);
-  static const primarySoft = Color(0xFFC6CAB9);
-  static const primaryContainer = Color(0xFF3A4541);
-  static const border = Color(0xFF4B565C);
-  static const success = Color(0xFF9BBCAF);
-  static const successContainer = Color(0xFF263831);
-  static const warning = Color(0xFFD8B071);
-  static const warningContainer = Color(0xFF3A3024);
-  static const error = Color(0xFFDC9188);
-  static const errorContainer = Color(0xFF3B2929);
+  static const background = Color(0xFF09090B);
+  static const surface = Color(0xFF17171A);
+  static const surfaceLow = Color(0xFF0F0F11);
+  static const surfaceContainer = Color(0xFF222226);
+  static const surfaceHigh = Color(0xFF222226);
+  static const text = Color(0xFFECECEE);
+  static const textMuted = Color(0xFFA1A1AA);
+  static const primary = Color(0xFFF3B35A);
+  static const primarySoft = Color(0xFFFFD08A);
+  static const primaryContainer = Color(0xFF3A2C17);
+  static const border = Color(0xFF2E2E33);
+  static const success = Color(0xFF8FD19E);
+  static const successContainer = Color(0xFF13241A);
+  static const warning = Color(0xFFE9C27A);
+  static const warningContainer = Color(0xFF2A2114);
+  static const error = Color(0xFFF2A595);
+  static const errorContainer = Color(0xFF2A1714);
 }
 
 abstract final class AppTheme {
