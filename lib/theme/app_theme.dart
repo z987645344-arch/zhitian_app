@@ -97,16 +97,24 @@ abstract final class AppTheme {
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.onPrimary,
-          minimumSize: const Size(0, 44),
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadii.control),
-          ),
-          textStyle: const TextStyle(fontWeight: FontWeight.w600),
-        ),
+        style:
+            FilledButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.onPrimary,
+              minimumSize: const Size(0, 44),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadii.control),
+              ),
+              textStyle: const TextStyle(fontWeight: FontWeight.w600),
+            ).copyWith(
+              elevation: WidgetStateProperty.resolveWith(
+                (states) => states.contains(WidgetState.hovered) ? 6 : 0,
+              ),
+              shadowColor: WidgetStatePropertyAll(
+                AppColors.primary.withValues(alpha: 0.55),
+              ),
+            ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
@@ -171,6 +179,34 @@ abstract final class AppTheme {
       ),
     );
   }
+}
+
+/// Lamp & Node 装饰：左上角暖灯径向光与琥珀辉光阴影，供页面背景和重点卡片复用。
+abstract final class AppDecor {
+  static const lamp = RadialGradient(
+    center: Alignment(-1.0, -1.1),
+    radius: 1.35,
+    colors: [Color(0x24F3B35A), Color(0x00F3B35A)],
+  );
+
+  static const lampLow = RadialGradient(
+    center: Alignment(-1.0, 1.1),
+    radius: 1.2,
+    colors: [Color(0x30F3A046), Color(0x00F3A046)],
+  );
+
+  static List<BoxShadow> glow([double strength = 1]) => [
+    BoxShadow(
+      color: AppColors.primary.withValues(alpha: 0.22 * strength),
+      blurRadius: 36,
+      spreadRadius: -8,
+    ),
+    const BoxShadow(
+      color: AppColors.shadow,
+      blurRadius: 28,
+      offset: Offset(0, 12),
+    ),
+  ];
 }
 
 abstract final class AppRadii {

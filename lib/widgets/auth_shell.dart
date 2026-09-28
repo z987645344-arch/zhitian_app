@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import 'brand_avatar.dart';
 
 /// 认证页统一外壳。
 ///
@@ -44,32 +45,37 @@ class AuthShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final wide = constraints.maxWidth >= _wideBreakpoint;
-            if (!wide) {
-              return Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: Center(child: _formCard(context, compact: true)),
-                ),
-              );
-            }
-            return Row(
-              children: [
-                const _BrandPanel(width: _brandPanelWidth),
-                Expanded(
-                  child: Center(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(32),
-                      child: Center(child: _formCard(context, compact: false)),
+      body: DecoratedBox(
+        decoration: const BoxDecoration(gradient: AppDecor.lamp),
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final wide = constraints.maxWidth >= _wideBreakpoint;
+              if (!wide) {
+                return Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: Center(child: _formCard(context, compact: true)),
+                  ),
+                );
+              }
+              return Row(
+                children: [
+                  const _BrandPanel(width: _brandPanelWidth),
+                  Expanded(
+                    child: Center(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(32),
+                        child: Center(
+                          child: _formCard(context, compact: false),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            );
-          },
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -82,15 +88,14 @@ class AuthShell extends StatelessWidget {
         padding: EdgeInsets.all(compact ? AppSpace.field : AppSpace.section),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppRadii.control),
+          gradient: const RadialGradient(
+            center: Alignment(-1.0, -1.0),
+            radius: 1.4,
+            colors: [Color(0xFF1F1B16), AppColors.surface],
+          ),
+          borderRadius: BorderRadius.circular(AppRadii.card),
           border: Border.all(color: AppColors.border),
-          boxShadow: const [
-            BoxShadow(
-              color: AppColors.shadow,
-              blurRadius: 28,
-              offset: Offset(0, 12),
-            ),
-          ],
+          boxShadow: AppDecor.glow(),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -101,7 +106,7 @@ class AuthShell extends StatelessWidget {
             if (compact) ...[
               const Align(
                 alignment: Alignment.centerLeft,
-                child: _BrandMark(size: 44, radius: 5, iconSize: 24),
+                child: BrandAvatar(size: 44),
               ),
               const SizedBox(height: 16),
             ],
@@ -228,21 +233,22 @@ class _BrandPanel extends StatelessWidget {
       padding: const EdgeInsets.all(48),
       decoration: const BoxDecoration(
         color: AppColors.surfaceLow,
+        gradient: AppDecor.lampLow,
         border: Border(right: BorderSide(color: AppColors.border)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _BrandMark(size: 52, radius: 9, iconSize: 28),
+          const BrandAvatar(size: 56),
           const SizedBox(height: 24),
           const Text(
             '知天',
             style: TextStyle(
               color: AppColors.text,
-              fontSize: 32,
-              fontWeight: FontWeight.w700,
-              height: 1.25,
-              letterSpacing: -0.6,
+              fontSize: 36,
+              fontWeight: FontWeight.w900,
+              height: 1.2,
+              letterSpacing: -1.2,
             ),
           ),
           const SizedBox(height: 8),
@@ -296,9 +302,17 @@ class _HighlightRow extends StatelessWidget {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: AppColors.primaryContainer,
             borderRadius: BorderRadius.circular(AppRadii.control),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(
+              color: AppColors.primary.withValues(alpha: 0.35),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.18),
+                blurRadius: 12,
+              ),
+            ],
           ),
           child: Icon(icon, size: 17, color: AppColors.primary),
         ),
@@ -329,40 +343,6 @@ class _HighlightRow extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _BrandMark extends StatelessWidget {
-  const _BrandMark({
-    required this.size,
-    required this.radius,
-    required this.iconSize,
-  });
-
-  final double size;
-  final double radius;
-  final double iconSize;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        shape: BoxShape.circle,
-      ),
-      child: Center(
-        child: Text(
-          '知',
-          style: TextStyle(
-            color: AppColors.onPrimary,
-            fontSize: iconSize,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ),
     );
   }
 }
