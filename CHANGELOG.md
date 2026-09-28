@@ -259,7 +259,15 @@
 - 一处待知天指挥师确认：`chat_provider` 新代码仅在「最后一条是流式中的助手消息」时写入 `displayError`，否则错误静默丢失；旧 `appendChunk` 的隐含假设可能相同，但值得核。
 - 未验证：Release、安装器、真实服务与权限链、读屏；未补 `tool_status`/`request_status` 显示。
 
-## 2026-09-28 候选（frontend/round-2）—— 配色与知了hub「Lamp & Node」对齐：中性黑灰 + 琥珀；未合并、未打标、未改版本号
+## v3.4 —— 版本升（x.Y）：Windows 客户端视觉改版「Lamp & Node」：OC 头像、剪影空状态、按钮中文字体回退
+
+- **覆盖范围**：`v3.3..v3.4` 共 **5 个提交**（4 个实施 + 本存档提交），经 PR `frontend/round-2` 以 rebase 方式合并：
+  - `792f107` 空状态图标换为品牌剪影，按钮文字显式指定中文字体回退
+  - `f0d7d44` Windows 客户端完整改版：OC 头像品牌标记、暖灯背景与辉光卡片
+  - `fc79c8d` 配色与知了hub Lamp & Node 对齐：中性黑灰 + 琥珀
+  - `ae48efc` docs: 校准客户端 README 测试数与主题描述
+- **定档理由**：界面视觉、品牌标记与交互细节属用户可见变化；无数据迁移、无新增环境变量、无接口改动，故为 x.Y 而非大版本。
+- 以下为实施期写下的候选记录，内容未改：
 
 - `lib/theme/app_theme.dart`：仅替换 `AppColors` 的 18 个颜色值（背景 `#09090B`、表面 `#17171A`、主色琥珀 `#F3B35A`、按钮文字 `#17130D`、正文 `#ECECEE`、说明 `#A1A1AA`，成功/警告/错误同步提亮并压暗底色）。常量名、`AppTheme` 结构、`AppRadii`/`AppSpace`、字体（Segoe UI + 微软雅黑）均不变；`lib/pages/`、`lib/widgets/` 无颜色字面量，未改。
 - 未触碰 `lib/services/`、`lib/providers/`、`lib/models/`、`lib/constants/`、`windows/`、`packaging/` 与 `pubspec.yaml` 版本号。
