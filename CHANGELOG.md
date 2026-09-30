@@ -282,3 +282,10 @@
   - 证据：`flutter analyze` No issues found，`flutter test` **49 passed**；另用临时渲染测试（未提交）在 1280×800 下出图检查登录页、对话页与气泡。未改 Windows 启动图标（位于 `windows/`，不在本轮范围）。
 - **剪影与按钮字体（同轮追加）**：`BrandSilhouette`（用户提供的纯黑剪影，128px PNG 约 6.6KB，base64 内嵌、按颜色着色）替换对话页空状态中央的星形图标，图标块由 48 放大到 56 并加辉光。主按钮、描边按钮、文字按钮与分段按钮的 `textStyle` 显式指定 `Segoe UI` + `Microsoft YaHei` 回退：`ButtonStyle.textStyle` 不继承主题 `fontFamily`，原先在缺少系统回退的环境里中文会显示为方块（渲染测试中"新建对话"复现为方块，修复后正常）。`flutter analyze` 无问题，`flutter test` 49 passed。
 
+## 2026-09-30 v3.4.1 —— 补丁（x.y.Z）：头像图标改为「外框 + 内圆」，人物居中
+
+- **问题**：人物在旧图标里偏下：旧版是把去底头像直接压在琥珀圆角方块上，并靠 `margin-top: 14%`（Flutter 为底部对齐）把肩膀贴到底边，视觉重心明显偏低。
+- **修复**：参考豆包式「外框 + 内圆」：琥珀渐变圆角方块外框（圆角 22.5%），中间浅奶油色内圆（直径 80%），人物头部居中、肩膀被内圆底边裁切；由同一张 1024px 母版导出各尺寸，图标自带底色，所以各端不再叠加底色、边框、内边距或偏移。
+  - `lib/widgets/brand_avatar.dart`：`_avatarWebp` 换成新图标（256px WebP，约 11KB）；`BrandAvatar` 去掉琥珀渐变底与底部对齐，改为圆角 22.5% 裁切后铺满，光晕保留。调用处（聊天页 38、登录壳 44 / 56）不变。
+- **证据**：母版在本地以 32–256px 预览确认居中；本机无 Flutter SDK，`flutter analyze` / 测试以 CI 为准。
+- **部署影响**：重新打包 Windows 客户端。`pubspec.yaml` 3.4.0+340 → 3.4.1+341。
