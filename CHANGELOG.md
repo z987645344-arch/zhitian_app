@@ -297,3 +297,9 @@
 - 本机 Flutter 更新后现场确认为 stable 3.47.5 / Dart 3.13.4，框架提交 `6a19cca56475dbfba1478ee68d7bd0c2ef891da1` 与最近成功 CI 的 3.47.5 相同；全量 `flutter test --no-pub` 52 passed，`flutter analyze --no-pub` No issues found。SDK正常解析会调整其自带依赖版本，生成的锁文件和分析配置改动已还原，不纳入本轮。
 - CI(Linux)固定 TZ=Asia/Shanghai；Windows CRT 的 IANA 写法会读成 UTC，实测用等价 TZ=CST-8 验证，环境变量用后还原。保留 UTC+8 断言，新旧输入均为 2026-09-30 10:46，跨日、文件解析和新会话 UTC 均有测试。
 - 本轮不打标、不部署；未做 Android 真机/生产验证，本次推送与 CI 由指挥师后续执行。
+
+## 2026-10-01 CI固定Flutter版本，避免stable漂移改变验收环境
+
+- `.github/workflows/ci.yml` 为 `subosito/flutter-action@v2` 显式设置 `flutter-version: '3.47.5'`，保留 stable 渠道、缓存及 `TZ=Asia/Shanghai`；不改客户端代码、依赖锁文件或版本号。
+- YAML实际解析断言版本/渠道/时区均正确；本机 Flutter 3.47.5 下 `flutter test --no-pub` 为 52 passed，Windows用等价 UTC+8 的 `CST-8` 并在结束后还原环境变量。
+- 本轮为纯修普通工作条目，不打标、不部署；本次远程 CI 尚未执行，推送与跟进由指挥师完成，不以本地测试代替 CI 结论。
