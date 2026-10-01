@@ -289,3 +289,11 @@
   - `lib/widgets/brand_avatar.dart`：`_avatarWebp` 换成新图标（256px WebP，约 11KB）；`BrandAvatar` 去掉琥珀渐变底与底部对齐，改为圆角 22.5% 裁切后铺满，光晕保留。调用处（聊天页 38、登录壳 44 / 56）不变。
 - **证据**：母版在本地以 32–256px 预览确认居中；本机无 Flutter SDK，`flutter analyze` / 测试以 CI 为准。
 - **部署影响**：重新打包 Windows 客户端。`pubspec.yaml` 3.4.0+340 → 3.4.1+341。
+
+## 2026-10-01 会话时间按设备本地时区显示、兼容旧UTC响应
+
+- 新增 `lib/utils/time_format.dart` 统一解析与显示：无标记按 UTC，有偏移尊重偏移，显示调用 `toLocal()`；历史列表不再直接显示原始字符串，个人文件时间解析也复用同一入口。
+- 本地新建会话用 UTC ISO 8601（Z），不再写设备本地 naive 时间；不改接口、pubspec.yaml 或版本号。
+- 本机 Flutter 更新后现场确认为 stable 3.47.5 / Dart 3.13.4，框架提交 `6a19cca56475dbfba1478ee68d7bd0c2ef891da1` 与最近成功 CI 的 3.47.5 相同；全量 `flutter test --no-pub` 52 passed，`flutter analyze --no-pub` No issues found。SDK正常解析会调整其自带依赖版本，生成的锁文件和分析配置改动已还原，不纳入本轮。
+- CI(Linux)固定 TZ=Asia/Shanghai；Windows CRT 的 IANA 写法会读成 UTC，实测用等价 TZ=CST-8 验证，环境变量用后还原。保留 UTC+8 断言，新旧输入均为 2026-09-30 10:46，跨日、文件解析和新会话 UTC 均有测试。
+- 本轮不打标、不部署；未做 Android 真机/生产验证，本次推送与 CI 由指挥师后续执行。

@@ -5,6 +5,7 @@ import '../models/chat_session.dart';
 import '../providers/chat_provider.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/time_format.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({
@@ -342,7 +343,7 @@ class _SessionTile extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      '${session.messageCount} 条消息 · ${session.lastActive}',
+                      '${session.messageCount} 条消息 · ${formatLocalTime(session.lastActive)}',
                       style: const TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 13,

@@ -74,7 +74,7 @@ class ChatProvider extends ChangeNotifier {
       ChatSessionSummary(
         sessionId: _sessionId,
         title: '新对话',
-        lastActive: DateTime.now().toIso8601String(),
+        lastActive: DateTime.now().toUtc().toIso8601String(),
         messageCount: 0,
       ),
     );

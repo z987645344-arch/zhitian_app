@@ -1,3 +1,5 @@
+import '../utils/time_format.dart';
+
 class UserFile {
   const UserFile({
     required this.fileId,
@@ -22,7 +24,7 @@ class UserFile {
       format: (json['format'] ?? '').toString(),
       sourceType: (json['source_type'] ?? '').toString(),
       sizeBytes: (json['size_bytes'] as num?)?.toInt() ?? 0,
-      createdAt: DateTime.tryParse((json['created_at'] ?? '').toString()),
+      createdAt: parseApiTimestamp((json['created_at'] ?? '').toString()),
     );
   }
 }
