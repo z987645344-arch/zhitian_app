@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/chat_provider.dart';
 import '../services/api_service.dart';
 import 'login_page.dart';
+import 'about_page.dart';
 import '../theme/app_theme.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -220,6 +221,22 @@ class _SettingsPageState extends State<SettingsPage> {
                           onPressed: _logout,
                           icon: const Icon(Icons.logout),
                           label: const Text('退出登录'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _SettingsCard(
+                      title: '03 / 应用信息',
+                      children: [
+                        TextButton.icon(
+                          key: const Key('open_about'),
+                          onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const AboutPage(),
+                            ),
+                          ),
+                          icon: const Icon(Icons.info_outline),
+                          label: const Text('关于'),
                         ),
                       ],
                     ),
