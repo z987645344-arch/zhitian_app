@@ -105,6 +105,8 @@ flutter run -d windows
 - [zhitian](https://github.com/z987645344-arch/zhitian)：后端与 Agent 核心
 - [zhitian_admin](https://github.com/z987645344-arch/zhitian_admin)：员工/审核员管理后台
 
-## License
+## 版权说明 / License
 
-当前仓库未附带开源许可证，默认保留全部权利。
+本项目为作者个人作品，**保留所有权利**，公开仅供浏览与评估，未经许可不得复制、部署或用于对外服务。详见 [LICENSE](LICENSE)。
+
+This is a personal project. **All rights reserved.** Public for viewing and evaluation only; see [LICENSE](LICENSE).
