@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../theme/app_theme.dart';
 
-const applicationCopyright = '© 2026 知了 · 保留所有权利。';
+const applicationCopyright = '© 2026 知了 · 保留所有权利';
 
 /// 使用现有版本唯一来源，不另存一个可能失配的版本常量。
 Future<String> loadApplicationVersion() async {

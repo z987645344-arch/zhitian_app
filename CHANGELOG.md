@@ -322,6 +322,7 @@
 
 ### 2026-10-09 关于页与开源许可入口
 
-- 设置页新增关于入口，显示应用名、从现有pubspec.yaml资源读取的版本与“© 2026 知了 · 保留所有权利。”，不硬编码版本或新增依赖。开源许可使用Flutter自带showLicensePage，applicationLegalese沿用统一文案。
+- 设置页新增关于入口，显示应用名、从现有pubspec.yaml资源读取的版本与“© 2026 知了 · 保留所有权利”，不硬编码版本或新增依赖。开源许可使用Flutter自带showLicensePage，applicationLegalese沿用统一文案。
+- 按修正要求去掉applicationCopyright及测试文案末尾句号。
 - 当前仓库没有自行打包的字体文件及OFL文件，无需新增字体许可登记；Flutter内置资源许可由框架既有机制提供，不改第三方许可。
 - Flutter 3.47.5下静态分析无问题，完整测试55项通过；新增版本来源测试及375px、1280px下设置→关于→开源许可的widget测试。关于及许可截图采用同源Flutter临时Web预览，不新增仓库Web平台配置。不改pubspec版本号或业务逻辑。

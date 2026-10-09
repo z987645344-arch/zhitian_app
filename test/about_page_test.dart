@@ -19,7 +19,7 @@ void main() {
       multiLine: true,
     ).firstMatch(File('pubspec.yaml').readAsStringSync())!.group(1);
     expect(await loadApplicationVersion(), expected);
-    expect(applicationCopyright, '© 2026 知了 · 保留所有权利。');
+    expect(applicationCopyright, '© 2026 知了 · 保留所有权利');
   });
 
   for (final width in [375.0, 1280.0]) {
