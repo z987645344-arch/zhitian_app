@@ -1,11 +1,14 @@
 #ifndef MyAppVersion
-  ; 待完成任务：目前独立硬编码维护，未来应考虑从pubspec.yaml自动读取版本号，避免多处维护。
-  #define MyAppVersion "3.2.0+320"
+  #error "Use packaging/build_windows_installer.ps1: version must come from pubspec.yaml"
+#endif
+#ifndef MyAppReleaseVersion
+  #error "Missing release version from pubspec.yaml"
+#endif
+#ifndef MyAppResourceVersion
+  #error "Missing Windows numeric version from pubspec.yaml"
 #endif
 
-#ifndef MyOutputBaseFilename
-  #define MyOutputBaseFilename "zhitian-windows-setup-3.2.0"
-#endif
+#define MyOutputBaseFilename "zhitian-windows-setup-" + MyAppReleaseVersion
 
 #define MyAppName "知天"
 #define MyAppPublisher "Zhitian / Zheng"
@@ -16,6 +19,10 @@ AppId={{14A4EF54-F741-4DF4-A11E-7E503CBF177B}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppVerName={#MyAppName} {#MyAppVersion}
+VersionInfoVersion={#MyAppResourceVersion}
+VersionInfoTextVersion={#MyAppVersion}
+VersionInfoProductVersion={#MyAppResourceVersion}
+VersionInfoProductTextVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 DefaultDirName={localappdata}\Programs\Zhitian
 DefaultGroupName={#MyAppName}
