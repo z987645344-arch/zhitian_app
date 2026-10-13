@@ -329,3 +329,11 @@
 - 按修正要求去掉applicationCopyright及测试文案末尾句号。
 - 当前仓库没有自行打包的字体文件及OFL文件，无需新增字体许可登记；Flutter内置资源许可由框架既有机制提供，不改第三方许可。
 - Flutter 3.47.5下静态分析无问题，完整测试55项通过；新增版本来源测试及375px、1280px下设置→关于→开源许可的widget测试。关于及许可截图采用同源Flutter临时Web预览，不新增仓库Web平台配置。不改pubspec版本号或业务逻辑。
+
+## 未发布
+
+### 2026-10-13 GitHub Actions升级到Node 24运行时
+
+- checkout升级到指定v5提交SHA并保留标签注释，已核对官方迁移说明；凭据持久化默认值仍为true，现有触发条件与输入不受影响。flutter-action为composite，保持原SHA，Flutter版本和缓存设置不变。
+- Action运行要求runner至少2.327.1，继续使用GitHub托管ubuntu-latest；不改App功能、依赖或pubspec版本，不推送。
+- 验证：Flutter 3.47.5下flutter analyze --no-pub无问题，flutter test --no-pub全部55项通过；静态检查旧SHA零命中，工作流除uses引用外的语义保持一致。
